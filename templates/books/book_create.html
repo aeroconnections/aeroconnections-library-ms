@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block title %}Add Book - AeroConnections Library{% endblock %}
+{% block page_title %}Add Book{% endblock %}
+
+{% block content %}
+<div class="max-w-xl">
+    <form method="post" class="bg-white rounded-xl border border-light-grey p-6">
+        {% csrf_token %}
+        
+        <div class="mb-4">
+            <label class="block text-sm font-medium text-dark-grey mb-2">Book Title *</label>
+            <input type="text" name="title" class="w-full border border-light-grey rounded-lg px-4 py-2 focus:outline-none focus:border-primary" required>
+        </div>
+        
+        <div class="mb-4">
+            <label class="block text-sm font-medium text-dark-grey mb-2">Author *</label>
+            <input type="text" name="author" class="w-full border border-light-grey rounded-lg px-4 py-2 focus:outline-none focus:border-primary" required>
+        </div>
+        
+        <div class="mb-4">
+            <label class="block text-sm font-medium text-dark-grey mb-2">ISBN</label>
+            <input type="text" name="isbn" class="w-full border border-light-grey rounded-lg px-4 py-2 focus:outline-none focus:border-primary">
+        </div>
+        
+        <div class="mb-6">
+            <label class="block text-sm font-medium text-dark-grey mb-2">Internal ID (leave blank for auto)</label>
+            <input type="text" name="book_id" placeholder="Auto-generated if blank" class="w-full border border-light-grey rounded-lg px-4 py-2 focus:outline-none focus:border-primary">
+            <p class="text-xs text-dark-grey mt-1">Leave blank to auto-generate (01, 02, 03...)</p>
+        </div>
+        
+        <div class="flex gap-4">
+            <button type="submit" class="bg-primary hover:bg-primary-dark text-white px-6 py-2 rounded-lg font-medium transition-colors">
+                Add Book
+            </button>
+            <a href="{% url 'books:book_list' %}" class="bg-light-grey hover:bg-gray-300 text-dark-grey px-6 py-2 rounded-lg font-medium transition-colors">
+                Cancel
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}

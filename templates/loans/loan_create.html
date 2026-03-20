@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block title %}New Loan - AeroConnections Library{% endblock %}
+{% block page_title %}New Loan{% endblock %}
+
+{% block content %}
+<div class="max-w-xl">
+    <form method="post" class="bg-white rounded-xl border border-light-grey p-6">
+        {% csrf_token %}
+        
+        <div class="mb-4">
+            <label class="block text-sm font-medium text-dark-grey mb-2">Book *</label>
+            <select name="book" class="w-full border border-light-grey rounded-lg px-4 py-2 focus:outline-none focus:border-primary bg-white" required>
+                <option value="">Select a book</option>
+                {% for book in books %}
+                <option value="{{ book.pk }}">#{{ book.book_id }} - {{ book.title }} ({{ book.author }})</option>
+                {% endfor %}
+            </select>
+            {% if not books %}
+            <p class="text-sm text-warning mt-2">No available books. All books are currently on loan.</p>
+            {% endif %}
+        </div>
+        
+        <div class="mb-6">
+            <label class="block text-sm font-medium text-dark-grey mb-2">Borrower Name *</label>
+            <input type="text" name="borrower_name" class="w-full border border-light-grey rounded-lg px-4 py-2 focus:outline-none focus:border-primary" required>
+        </div>
+        
+        <div class="bg-light-grey/30 rounded-lg p-4 mb-6">
+            <p class="text-sm text-dark-grey">
+                <strong>Note:</strong> Loan duration is 30 days. The due date will be automatically set.
+            </p>
+        </div>
+        
+        <div class="flex gap-4">
+            <button type="submit" class="bg-primary hover:bg-primary-dark text-white px-6 py-2 rounded-lg font-medium transition-colors">
+                Create Loan
+            </button>
+            <a href="{% url 'loans:loan_list' %}" class="bg-light-grey hover:bg-gray-300 text-dark-grey px-6 py-2 rounded-lg font-medium transition-colors">
+                Cancel
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}

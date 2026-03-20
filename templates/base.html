@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}AeroConnections Library{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: { DEFAULT: '#DA291C', dark: '#B8231A', light: '#FEE2E2' },
+                        'light-grey': '#C8C9C7',
+                        'dark-grey': '#5B6770',
+                        success: { DEFAULT: '#059669', light: '#D1FAE5' },
+                        warning: { DEFAULT: '#D97706', light: '#FEF3C7' },
+                        danger: { DEFAULT: '#DA291C', light: '#FEE2E2' },
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+    </style>
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="bg-light-grey min-h-screen">
+    <div class="flex">
+        <aside class="w-64 bg-dark-grey min-h-screen fixed flex flex-col">
+            <div class="p-6 pb-4">
+                <img src="/static/logo.png" alt="AeroConnections" class="h-10 w-auto brightness-0 invert" onerror="this.style.display='none'">
+                <h1 class="text-white font-bold text-lg mt-2" id="logo-text">AeroConnections</h1>
+            </div>
+            
+            <nav class="flex-1 mt-2">
+                <a href="{% url 'books:book_list' %}" class="flex items-center gap-3 px-6 py-3 text-white hover:bg-white/10 transition-colors {% if request.resolver_match.app_name == 'books' and request.resolver_match.url_name == 'book_list' %}bg-primary{% endif %}">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                    </svg>
+                    Books
+                </a>
+                <a href="{% url 'loans:loan_list' %}" class="flex items-center gap-3 px-6 py-3 text-white hover:bg-white/10 transition-colors {% if request.resolver_match.app_name == 'loans' %}bg-primary{% endif %}">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                    </svg>
+                    Loans
+                </a>
+                <a href="{% url 'loans:return_notes' %}" class="flex items-center gap-3 px-6 py-3 text-white hover:bg-white/10 transition-colors {% if request.resolver_match.url_name == 'return_notes' %}bg-primary{% endif %}">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                    </svg>
+                    Return Notes
+                </a>
+                <div class="border-t border-white/20 my-4 mx-4"></div>
+                <a href="{% url 'admin:index' %}" class="flex items-center gap-3 px-6 py-3 text-white hover:bg-white/10 transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    </svg>
+                    Settings
+                </a>
+            </nav>
+            
+            <div class="p-4 border-t border-white/20">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white text-sm font-medium">
+                        {{ user.username|slice:":1"|upper }}
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-white text-sm font-medium truncate">{{ user.username }}</p>
+                        <form action="{% url 'account_logout' %}" method="post" class="inline">
+                            {% csrf_token %}
+                            <button type="submit" class="text-white/60 hover:text-white text-xs">Logout</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </aside>
+        
+        <main class="flex-1 ml-64">
+            <header class="bg-white border-b border-light-grey px-8 py-4 flex justify-between items-center">
+                <h2 class="text-xl font-semibold text-dark-grey">{% block page_title %}Dashboard{% endblock %}</h2>
+                <div class="flex items-center gap-4">
+                    {% block header_actions %}{% endblock %}
+                </div>
+            </header>
+            
+            <div class="p-8">
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="mb-4 p-4 rounded-lg {% if message.tags == 'success' %}bg-success-light text-success border border-success{% elif message.tags == 'error' %}bg-danger-light text-danger border border-danger{% else %}bg-white text-dark-grey border border-light-grey{% endif %}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+                
+                {% block content %}{% endblock %}
+            </div>
+        </main>
+    </div>
+    
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block title %}Return Notes - AeroConnections Library{% endblock %}
+{% block page_title %}Return Notes{% endblock %}
+
+{% block content %}
+<div class="bg-white rounded-xl border border-light-grey overflow-hidden">
+    <table class="min-w-full divide-y divide-light-grey">
+        <thead class="bg-light-grey/30">
+            <tr>
+                <th class="px-6 py-3 text-left text-xs font-medium text-dark-grey uppercase tracking-wider">Book ID</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-dark-grey uppercase tracking-wider">Borrower</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-dark-grey uppercase tracking-wider">Notes</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-dark-grey uppercase tracking-wider">Photo</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-dark-grey uppercase tracking-wider">Date</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-dark-grey uppercase tracking-wider">Staff</th>
+            </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-light-grey">
+            {% for note in notes %}
+            <tr>
+                <td class="px-6 py-4 whitespace-nowrap">
+                    <span class="font-mono font-medium text-dark-grey">#{{ note.book.book_id }}</span>
+                </td>
+                <td class="px-6 py-4">
+                    <div class="font-medium text-gray-900">{{ note.borrower_name }}</div>
+                    <div class="text-sm text-dark-grey">{{ note.book.title }}</div>
+                </td>
+                <td class="px-6 py-4">
+                    {% if note.note %}
+                    <p class="text-gray-900 max-w-xs truncate" title="{{ note.note }}">{{ note.note }}</p>
+                    {% else %}
+                    <span class="text-dark-grey">-</span>
+                    {% endif %}
+                </td>
+                <td class="px-6 py-4">
+                    {% if note.image %}
+                    <a href="{{ note.image.url }}" target="_blank" class="text-primary hover:text-primary-dark">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                        </svg>
+                    </a>
+                    {% else %}
+                    <span class="text-dark-grey">-</span>
+                    {% endif %}
+                </td>
+                <td class="px-6 py-4 text-dark-grey whitespace-nowrap">
+                    {{ note.created_at|date:"M d, Y" }}
+                </td>
+                <td class="px-6 py-4 text-dark-grey whitespace-nowrap">
+                    {{ note.created_by.username|default:"-" }}
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="6" class="px-6 py-12 text-center text-dark-grey">
+                    No return notes yet.
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

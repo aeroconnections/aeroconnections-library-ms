@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block title %}Book #{{ book.book_id }} - AeroConnections Library{% endblock %}
+{% block page_title %}Book #{{ book.book_id }}{% endblock %}
+
+{% block header_actions %}
+<div class="flex gap-4">
+    <a href="{% url 'books:book_edit' book.pk %}" class="bg-light-grey hover:bg-gray-300 text-dark-grey px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+        Edit
+    </a>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl">
+    <div class="bg-white rounded-xl border border-light-grey p-6">
+        <div class="flex items-start justify-between mb-6 pb-6 border-b border-light-grey">
+            <div>
+                <span class="text-xs font-medium text-dark-grey uppercase tracking-wider">Book ID</span>
+                <h2 class="text-2xl font-bold text-gray-900 mt-1">#{{ book.book_id }}</h2>
+            </div>
+            <span class="px-3 py-1 text-sm font-medium rounded-full 
+                {% if book.status == 'available' %}bg-success-light text-success
+                {% else %}bg-light-grey text-dark-grey{% endif %}">
+                {{ book.get_status_display }}
+            </span>
+        </div>
+        
+        <div class="grid grid-cols-2 gap-6 mb-6">
+            <div>
+                <p class="text-xs text-dark-grey uppercase tracking-wider">Title</p>
+                <p class="font-medium text-gray-900">{{ book.title }}</p>
+            </div>
+            <div>
+                <p class="text-xs text-dark-grey uppercase tracking-wider">Author</p>
+                <p class="font-medium text-gray-900">{{ book.author }}</p>
+            </div>
+            <div>
+                <p class="text-xs text-dark-grey uppercase tracking-wider">ISBN</p>
+                <p class="font-medium text-gray-900">{{ book.isbn|default:"-" }}</p>
+            </div>
+            <div>
+                <p class="text-xs text-dark-grey uppercase tracking-wider">Current Borrower</p>
+                <p class="font-medium {% if book.current_borrower %}text-gray-900{% else %}text-dark-grey{% endif %}">
+                    {{ book.current_borrower|default:"-" }}
+                </p>
+            </div>
+        </div>
+        
+        {% if book.is_on_loan %}
+        <div class="bg-light-grey/30 rounded-lg p-4 mb-6">
+            <p class="text-xs text-dark-grey uppercase tracking-wider mb-2">Loan Status</p>
+            <div class="flex items-center gap-4">
+                <span class="{% if book.days_out > 30 %}text-danger font-bold text-lg{% elif book.days_out >= 25 %}text-warning font-bold text-lg{% endif %}">
+                    {{ book.days_out }} days out
+                </span>
+                {% if book.days_out > 30 %}
+                    <span class="px-2 py-1 text-xs font-medium rounded bg-danger-light text-danger">OVERDUE</span>
+                {% elif book.days_out >= 25 %}
+                    <span class="px-2 py-1 text-xs font-medium rounded bg-warning-light text-warning">Due Soon</span>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+        
+        <div class="flex gap-4">
+            {% if book.status == 'available' %}
+            <a href="{% url 'loans:loan_create' %}" class="bg-primary hover:bg-primary-dark text-white px-4 py-2 rounded-lg font-medium transition-colors">
+                Checkout Book
+            </a>
+            {% endif %}
+            <a href="{% url 'books:book_list' %}" class="bg-light-grey hover:bg-gray-300 text-dark-grey px-4 py-2 rounded-lg font-medium transition-colors">
+                Back to List
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
