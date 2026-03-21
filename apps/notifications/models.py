@@ -1,11 +1,13 @@
-from django.db import models
 from django.core.validators import RegexValidator
+from django.db import models
 
 
 class Branding(models.Model):
-    company_name = models.CharField(max_length=100, default="AeroConnections")
+    company_name = models.CharField(max_length=100, default="AeroConnections", blank=True)
     library_name = models.CharField(max_length=100, default="Library Management System")
     logo = models.ImageField(upload_to="branding/", blank=True, null=True)
+    show_company_name = models.BooleanField(default=True, help_text="Show company name next to logo")
+    logo_invert = models.BooleanField(default=True, help_text="Invert logo colors (for dark backgrounds)")
     primary_color = models.CharField(
         max_length=7,
         default="#DA291C",
