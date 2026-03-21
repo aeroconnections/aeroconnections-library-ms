@@ -11,4 +11,5 @@ urlpatterns = [
     path("loans/<int:pk>/", views.loan_detail, name="loan_detail"),
     path("loans/<int:pk>/return/", views.loan_return, name="loan_return"),
     path("return-notes/", views.return_notes, name="return_notes"),
+    path("activity-log/", views.activity_log, name="activity_log"),
 ]

@@ -2,6 +2,7 @@
 
 {% block title %}Return Book - AeroConnections Library{% endblock %}
 {% block page_title %}Return Book{% endblock %}
+{% block page_subtitle %}Process book return{% endblock %}
 
 {% block content %}
 <div class="max-w-xl">
@@ -11,7 +12,7 @@
             <div class="grid grid-cols-2 gap-4">
                 <div>
                     <p class="text-xs text-dark-grey uppercase tracking-wider">Book</p>
-                    <p class="font-medium text-gray-900">#{{ loan.book_id_snapshot }} - {{ loan.book.title }}</p>
+                    <p class="font-medium text-gray-900">#{{ loan.book_id_snapshot }} - {{ loan.book_copy.book.title }}</p>
                 </div>
                 <div>
                     <p class="text-xs text-dark-grey uppercase tracking-wider">Borrower</p>

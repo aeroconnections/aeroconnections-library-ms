@@ -62,25 +62,26 @@
             width: 100%;
             height: 100%;
             overflow: hidden;
+            pointer-events: none;
         }
         
         .shape {
             position: absolute;
-            opacity: 0.1;
+            opacity: 0.08;
             animation: float 20s infinite ease-in-out;
         }
         
-        .shape-1 { width: 300px; height: 300px; background: linear-gradient(135deg, #DA291C 0%, transparent 70%); border-radius: 50%; top: -100px; left: -100px; }
-        .shape-2 { width: 200px; height: 200px; background: linear-gradient(135deg, #C8C9C7 0%, transparent 70%); border-radius: 50%; top: 50%; right: -50px; }
-        .shape-3 { width: 150px; height: 150px; background: linear-gradient(135deg, #DA291C 0%, transparent 70%); border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%; bottom: 10%; left: 20%; }
-        .shape-4 { width: 100px; height: 100px; background: linear-gradient(135deg, #C8C9C7 0%, transparent 70%); border-radius: 50%; top: 30%; left: 60%; }
-        .shape-5 { width: 250px; height: 250px; background: linear-gradient(135deg, #DA291C 0%, transparent 60%); border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; bottom: -50px; right: 20%; }
+        .shape-1 { width: 120px; height: 120px; top: 10%; left: 5%; animation-delay: 0s; }
+        .shape-2 { width: 80px; height: 80px; top: 60%; left: 15%; animation-delay: -5s; }
+        .shape-3 { width: 100px; height: 100px; top: 30%; right: 10%; animation-delay: -10s; }
+        .shape-4 { width: 60px; height: 60px; bottom: 20%; left: 40%; animation-delay: -15s; }
+        .shape-5 { width: 90px; height: 90px; bottom: 10%; right: 20%; animation-delay: -7s; }
         
         @keyframes float {
             0%, 100% { transform: translate(0, 0) rotate(0deg); }
-            25% { transform: translate(30px, -30px) rotate(5deg); }
-            50% { transform: translate(0, -50px) rotate(0deg); }
-            75% { transform: translate(-30px, -30px) rotate(-5deg); }
+            25% { transform: translate(20px, -20px) rotate(5deg); }
+            50% { transform: translate(0, -30px) rotate(0deg); }
+            75% { transform: translate(-20px, -20px) rotate(-5deg); }
         }
         
         .particle {
@@ -131,67 +132,185 @@
             to { transform: translateX(-50%); }
         }
         
-        /* Modern Navbar */
-        .sidebar {
-            width: 280px;
-            background: linear-gradient(180deg, #3d454d 0%, #5B6770 100%);
-            border-right: 1px solid rgba(255,255,255,0.1);
+        /* Top Navigation Bar */
+        .top-nav {
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(200,201,199,0.3);
         }
         
-        .nav-item {
+        .nav-link {
             display: flex;
             align-items: center;
-            gap: 12px;
-            padding: 14px 20px;
-            margin: 4px 12px;
-            border-radius: 12px;
-            color: rgba(255,255,255,0.7);
-            transition: all 0.3s ease;
+            gap: 8px;
+            padding: 12px 16px;
+            border-radius: 8px;
+            color: #5B6770;
             font-weight: 500;
+            font-size: 14px;
+            transition: all 0.2s ease;
         }
         
-        .nav-item:hover {
-            background: rgba(255,255,255,0.1);
-            color: white;
+        .nav-link:hover {
+            background: rgba(91,103,112,0.1);
+            color: #3d454d;
         }
         
-        .nav-item.active {
+        .nav-link.active {
             background: #DA291C;
             color: white;
-            box-shadow: 0 4px 15px rgba(218, 41, 28, 0.4);
         }
         
-        .nav-item svg {
-            width: 22px;
-            height: 22px;
-            flex-shrink: 0;
+        .nav-link svg {
+            width: 20px;
+            height: 20px;
         }
         
-        .nav-section-title {
-            font-size: 11px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            color: rgba(255,255,255,0.4);
-            padding: 20px 32px 8px;
+        /* User Menu */
+        .user-menu {
+            position: relative;
         }
         
-        .logo-container {
-            padding: 24px 20px;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
+        .user-dropdown {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            margin-top: 8px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+            min-width: 200px;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: all 0.2s ease;
+            z-index: 100;
         }
         
-        .user-avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 10px;
+        .user-menu:hover .user-dropdown,
+        .user-dropdown.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+        
+        /* Floating Action Button */
+        .fab-container {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 50;
+        }
+        
+        .fab {
+            width: 56px;
+            height: 56px;
+            border-radius: 16px;
             background: linear-gradient(135deg, #DA291C, #B8231A);
+            color: white;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: white;
-            font-weight: 600;
-            font-size: 16px;
+            box-shadow: 0 4px 20px rgba(218, 41, 28, 0.4);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .fab:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 25px rgba(218, 41, 28, 0.5);
+        }
+        
+        .fab-menu {
+            position: absolute;
+            bottom: 70px;
+            right: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(10px);
+            transition: all 0.3s ease;
+        }
+        
+        .fab-menu.open {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+        
+        .fab-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 18px;
+            background: white;
+            border-radius: 10px;
+            color: #5B6770;
+            font-size: 14px;
+            font-weight: 500;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+            white-space: nowrap;
+            transition: all 0.2s ease;
+            text-decoration: none;
+        }
+        
+        .fab-item:hover {
+            background: #FEE2E2;
+            color: #DA291C;
+            transform: translateX(-4px);
+        }
+        
+        .fab-item svg {
+            width: 18px;
+            height: 18px;
+        }
+        
+        /* Search Bar Styles */
+        .search-input {
+            background: white;
+            border: 1px solid #C8C9C7;
+            border-radius: 10px;
+            padding: 10px 16px;
+            font-size: 14px;
+            color: #3d454d;
+            transition: all 0.2s ease;
+            width: 100%;
+        }
+        
+        .search-input:focus {
+            outline: none;
+            border-color: #DA291C;
+            box-shadow: 0 0 0 3px rgba(218,41,28,0.1);
+        }
+        
+        .search-input::placeholder {
+            color: #9ca3af;
+        }
+        
+        /* Select Dropdown Styles */
+        .filter-select {
+            background: white;
+            border: 1px solid #C8C9C7;
+            border-radius: 10px;
+            padding: 10px 16px;
+            font-size: 14px;
+            color: #3d454d;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%235B6770'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            background-size: 16px;
+            padding-right: 40px;
+        }
+        
+        .filter-select:focus {
+            outline: none;
+            border-color: #DA291C;
+            box-shadow: 0 0 0 3px rgba(218,41,28,0.1);
         }
     </style>
     {% block extra_head %}{% endblock %}
@@ -200,110 +319,164 @@
     <!-- Animated Background -->
     <div class="animated-bg">
         <div class="floating-shapes">
-            <div class="shape shape-1"></div>
-            <div class="shape shape-2"></div>
-            <div class="shape shape-3"></div>
-            <div class="shape shape-4"></div>
-            <div class="shape shape-5"></div>
+            <svg class="shape shape-1" viewBox="0 0 24 24" fill="white">
+                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20M4 19.5A2.5 2.5 0 0 0 6.5 22H20V2H6.5A2.5 2.5 0 0 0 4 4.5v15z"/>
+            </svg>
+            <svg class="shape shape-2" viewBox="0 0 24 24" fill="white">
+                <path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+            </svg>
+            <svg class="shape shape-3" viewBox="0 0 24 24" fill="white">
+                <path d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/>
+            </svg>
+            <svg class="shape shape-4" viewBox="0 0 24 24" fill="white">
+                <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+            </svg>
+            <svg class="shape shape-5" viewBox="0 0 24 24" fill="white">
+                <path d="M12 14l9-5-9-5-9 5 9 5zm0 0l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14zm-4 6v-7.5l4-2.222"/>
+            </svg>
         </div>
         <div class="particles" id="particles"></div>
         <div class="gradient-overlay"></div>
         <div class="wave"></div>
     </div>
     
-    <div class="flex">
-        <!-- Modern Sidebar -->
-        <aside class="sidebar min-h-screen fixed flex flex-col z-10">
-            <!-- Logo -->
-            <div class="logo-container">
-                <div class="flex items-center gap-3">
-                    <img src="{{ branding.logo_url }}" alt="{{ branding.company_name }}" class="h-10 w-auto {% if branding.logo_invert %}brightness-0 invert{% endif %}" onerror="this.style.display='none'">
-                    {% if branding.show_company_name %}
+    <!-- Top Navigation -->
+    <header class="top-nav">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="flex items-center justify-between h-16">
+                <!-- Logo & Brand -->
+                <a href="{% url 'loans:dashboard' %}" class="flex items-center gap-4 hover:opacity-80 transition-opacity">
+                    <img src="{{ branding.logo_url }}" alt="{{ branding.company_name }}" class="h-10 w-auto" onerror="this.style.display='none'">
+                    {% if branding.show_company_name or branding.show_library_name %}
                     <div>
-                        <h1 class="text-white font-bold text-lg leading-tight">{{ branding.company_name }}</h1>
-                        <p class="text-white/50 text-xs">{{ branding.library_name }}</p>
+                        {% if branding.show_company_name %}
+                        <h1 class="font-bold text-dark-grey text-lg leading-tight">{{ branding.company_name|default:"AeroConnections" }}</h1>
+                        {% endif %}
+                        {% if branding.show_library_name %}
+                        <p class="text-xs text-gray-500">{{ branding.library_name|default:"Library Management" }}</p>
+                        {% endif %}
                     </div>
                     {% endif %}
-                </div>
-            </div>
-            
-            <!-- Navigation -->
-            <nav class="flex-1 py-4 overflow-y-auto">
-                <div class="nav-section-title">Main Menu</div>
-                
-                <a href="{% url 'books:book_list' %}" class="nav-item {% if request.resolver_match.app_name == 'books' and request.resolver_match.url_name == 'book_list' %}active{% endif %}">
-                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
-                    </svg>
-                    <span>Books</span>
                 </a>
                 
-                <a href="{% url 'loans:loan_list' %}" class="nav-item {% if request.resolver_match.app_name == 'loans' and request.resolver_match.url_name == 'loan_list' %}active{% endif %}">
-                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
-                    </svg>
-                    <span>Loans</span>
-                </a>
+                <!-- Navigation Links -->
+                <nav class="hidden md:flex items-center gap-2">
+                    <a href="{% url 'books:book_list' %}" class="nav-link {% if request.resolver_match.app_name == 'books' and request.resolver_match.url_name == 'book_list' %}active{% endif %}">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                        </svg>
+                        Books
+                    </a>
+                    
+                    <a href="{% url 'loans:loan_list' %}" class="nav-link {% if request.resolver_match.app_name == 'loans' and request.resolver_match.url_name == 'loan_list' %}active{% endif %}">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                        </svg>
+                        Loans
+                    </a>
+                    
+                    <a href="{% url 'borrowers:borrower_list' %}" class="nav-link {% if request.resolver_match.app_name == 'borrowers' %}active{% endif %}">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                        </svg>
+                        Borrowers
+                    </a>
+                    
+                    <a href="{% url 'loans:return_notes' %}" class="nav-link {% if request.resolver_match.url_name == 'return_notes' %}active{% endif %}">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                        </svg>
+                        Returns
+                    </a>
+                    
+                    <a href="{% url 'loans:activity_log' %}" class="nav-link {% if request.resolver_match.url_name == 'activity_log' %}active{% endif %}">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        Activity
+                    </a>
+                </nav>
                 
-                <a href="{% url 'loans:return_notes' %}" class="nav-item {% if request.resolver_match.url_name == 'return_notes' %}active{% endif %}">
-                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                    </svg>
-                    <span>Return Notes</span>
-                </a>
-                
-                <div class="nav-section-title">System</div>
-                
-                <a href="{% url 'admin:index' %}" class="nav-item">
-                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                    </svg>
-                    <span>Settings</span>
-                </a>
-            </nav>
-            
-            <!-- User Section -->
-            <div class="p-4 border-t border-white/10">
-                <div class="flex items-center gap-3 p-3 rounded-xl bg-white/5">
-                    <div class="user-avatar">
-                        {{ user.username|slice:":1"|upper }}
-                    </div>
-                    <div class="flex-1 min-w-0">
-                        <p class="text-white text-sm font-medium truncate">{{ user.username }}</p>
+                <!-- User Menu -->
+                <div class="user-menu flex items-center gap-4">
+                    <a href="{% url 'admin:index' %}" class="nav-link">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                        </svg>
+                        Admin
+                    </a>
+                    
+                    <div class="flex items-center gap-3 pl-4 border-l border-gray-200">
+                        <div class="w-9 h-9 rounded-full bg-primary flex items-center justify-center text-white font-semibold text-sm">
+                            {{ user.username|slice:":1"|upper }}
+                        </div>
+                        <div class="hidden sm:block">
+                            <p class="text-sm font-medium text-dark-grey">{{ user.username }}</p>
+                        </div>
                         <form action="{% url 'account_logout' %}" method="post" class="inline">
                             {% csrf_token %}
-                            <button type="submit" class="text-white/50 hover:text-white text-xs transition-colors">Sign Out</button>
+                            <button type="submit" class="text-gray-400 hover:text-danger transition-colors" title="Sign Out">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                                </svg>
+                            </button>
                         </form>
                     </div>
                 </div>
             </div>
-        </aside>
-        
-        <!-- Main Content -->
-        <main class="flex-1 ml-[280px]">
-            <header class="bg-white/90 backdrop-blur-md border-b border-light-grey px-8 py-5 flex justify-between items-center sticky top-0 z-10">
-                <div>
-                    <h2 class="text-xl font-bold text-dark-grey">{% block page_title %}Dashboard{% endblock %}</h2>
-                    <p class="text-sm text-dark-grey/60">{% block page_subtitle %}{% endblock %}</p>
-                </div>
-                <div class="flex items-center gap-4">
-                    {% block header_actions %}{% endblock %}
-                </div>
-            </header>
-            
-            <div class="p-8">
-                {% if messages %}
-                    {% for message in messages %}
-                        <div class="mb-4 p-4 rounded-xl backdrop-blur-sm {% if message.tags == 'success' %}bg-success-light/90 text-success border border-success/20{% elif message.tags == 'error' %}bg-danger-light/90 text-danger border border-danger/20{% else %}bg-white/90 text-dark-grey border border-light-grey{% endif %}">
-                            {{ message }}
-                        </div>
-                    {% endfor %}
-                {% endif %}
-                
-                {% block content %}{% endblock %}
+        </div>
+    </header>
+    
+    <!-- Main Content -->
+    <main>
+        <div class="max-w-7xl mx-auto px-6 py-8">
+            <!-- Page Header -->
+            <div class="mb-8">
+                <h1 class="text-2xl font-bold text-white">{% block page_title %}Dashboard{% endblock %}</h1>
+                <p class="text-white/60 mt-1">{% block page_subtitle %}{% endblock %}</p>
             </div>
-        </main>
+            
+            <!-- Messages -->
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="mb-6 p-4 rounded-xl bg-white/95 text-dark-grey border border-light-grey/50 backdrop-blur-sm">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+            
+            {% block content %}{% endblock %}
+        </div>
+    </main>
+    
+    <!-- Floating Action Button -->
+    <div class="fab-container">
+        <div class="fab-menu" id="fabMenu">
+            <a href="{% url 'loans:loan_create' %}" class="fab-item">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                </svg>
+                New Loan
+            </a>
+            <a href="{% url 'books:book_create' %}" class="fab-item">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                </svg>
+                Add Book
+            </a>
+            <a href="{% url 'borrowers:borrower_create' %}" class="fab-item">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/>
+                </svg>
+                Add Borrower
+            </a>
+        </div>
+        <button class="fab" onclick="toggleFabMenu()" aria-label="Quick Actions">
+            <svg class="w-6 h-6 transition-transform" id="fabIcon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+            </svg>
+        </button>
     </div>
     
     <script>
@@ -324,6 +497,24 @@
             
             particlesContainer.appendChild(particle);
         }
+        
+        function toggleFabMenu() {
+            document.getElementById('fabMenu').classList.toggle('open');
+            const icon = document.getElementById('fabIcon');
+            if (document.getElementById('fabMenu').classList.contains('open')) {
+                icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>';
+            } else {
+                icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>';
+            }
+        }
+        
+        document.addEventListener('click', function(e) {
+            const fabContainer = document.querySelector('.fab-container');
+            if (!fabContainer.contains(e.target)) {
+                document.getElementById('fabMenu').classList.remove('open');
+                document.getElementById('fabIcon').innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>';
+            }
+        });
     </script>
     {% block extra_scripts %}{% endblock %}
 </body>

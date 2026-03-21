@@ -29,6 +29,7 @@ INSTALLED_APPS = [
     "django_filters",
     "apps.books",
     "apps.loans",
+    "apps.borrowers",
     "apps.notifications",
 ]
 
@@ -91,6 +92,7 @@ STATICFILES = [
     "django.contrib.admin.staticfiles",
     "apps.books.static",
     "apps.loans.static",
+    "apps.borrowers.static",
     "apps.notifications.static",
 ]
 

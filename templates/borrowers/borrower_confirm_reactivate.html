@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block title %}Reactivate {{ borrower.full_name }} - AeroConnections Library{% endblock %}
+{% block page_title %}Reactivate Borrower{% endblock %}
+{% block page_subtitle %}Restore borrower access{% endblock %}
+
+{% block content %}
+<div class="max-w-md">
+    <div class="bg-white rounded-xl border border-light-grey p-6">
+        <h3 class="text-lg font-semibold text-gray-900 mb-4">Confirm Reactivation</h3>
+        <p class="text-dark-grey mb-6">
+            Are you sure you want to reactivate <strong>{{ borrower.full_name }}</strong>?
+            They will be able to borrow books again.
+        </p>
+        
+        <form method="post">
+            {% csrf_token %}
+            <div class="flex gap-4">
+                <button type="submit" class="bg-success hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+                    Reactivate
+                </button>
+                <a href="{% url 'borrowers:borrower_list' %}" class="bg-light-grey hover:bg-gray-300 text-dark-grey px-4 py-2 rounded-lg font-medium transition-colors">
+                    Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

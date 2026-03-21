@@ -1,18 +1,24 @@
 # AeroConnections Library Management System
 
-A free and open-source library management system built with Django for tracking book inventory and loans.
+**Version 1.0.0** | A free and open-source library management system built with Django for tracking book inventory and loans.
 
 **License:** AGPL-3.0 - This software is free and any derivative works must also be open source.
 
 ## Features
 
-- **Book Inventory** — Add, edit, and track books with auto-generated internal IDs
-- **Loan Management** — Checkout, return, and 30-day tracking
+- **Book Inventory** — Add, edit, and track books with unique copy IDs (#01-1, #01-2, etc.)
+- **Book Copies** — Each physical book has a unique copy ID for precise tracking
+- **Loan Management** — Checkout, return, and configurable loan duration (14-60 days)
 - **Days Tracking** — Automatic calculation of days since checkout
-- **Overdue Alerts** — Visual indicators and Google Chat notifications
+- **Overdue Alerts** — Visual indicators for due soon and overdue items
+- **Borrower Management** — Add borrowers with activation/deactivation support
 - **Return Notes** — Optional notes and damage photos for returns
+- **Activity Log** — Immutable record of all system activities
+- **Webhook Support** — Configure webhooks for external notifications (Slack, Discord)
+- **Email Notifications** — SMTP configuration for email alerts
+- **Configurable Settings** — Loan duration, due thresholds, and max books per borrower
 - **Staff Authentication** — Secure login with role-based permissions
-- **AeroConnections Branding** — Company colors and logo
+- **AeroConnections Branding** — Company colors and configurable logo
 
 ## Quick Start
 

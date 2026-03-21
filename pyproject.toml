@@ -1,18 +1,18 @@
 [project]
 name = "library-ms"
-version = "0.1.0"
-description = "A free and open-source library management system"
-authors = [{name = "Your Name", email = "your.email@example.com"}]
+version = "1.0.0"
+description = "A free and open-source library management system for AeroConnections"
+authors = [{name = "AeroConnections", email = "it@aeroconnections.com"}]
 readme = "README.md"
 requires-python = ">=3.11"
 license = {text = "AGPL-3.0"}
 
 [project.urls]
-Homepage = "https://github.com/YOUR_USERNAME/library-ms"
+Homepage = "https://github.com/aeroconnections/library-ms"
 Documentation = "https://library-ms.readthedocs.io"
-Repository = "https://github.com/YOUR_USERNAME/library-ms"
-Issues = "https://github.com/YOUR_USERNAME/library-ms/issues"
-Changelog = "https://github.com/YOUR_USERNAME/library-ms/blob/main/CHANGELOG.md"
+Repository = "https://github.com/aeroconnections/library-ms"
+Issues = "https://github.com/aeroconnections/library-ms/issues"
+Changelog = "https://github.com/aeroconnections/library-ms/blob/main/CHANGELOG.md"
 
 [build-system]
 requires = ["hatchling"]

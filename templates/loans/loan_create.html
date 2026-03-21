@@ -2,6 +2,7 @@
 
 {% block title %}New Loan - AeroConnections Library{% endblock %}
 {% block page_title %}New Loan{% endblock %}
+{% block page_subtitle %}Create a new loan{% endblock %}
 
 {% block content %}
 <div class="max-w-xl">
@@ -9,21 +10,29 @@
         {% csrf_token %}
         
         <div class="mb-4">
-            <label class="block text-sm font-medium text-dark-grey mb-2">Book *</label>
-            <select name="book" class="w-full border border-light-grey rounded-lg px-4 py-2 focus:outline-none focus:border-primary bg-white" required>
-                <option value="">Select a book</option>
-                {% for book in books %}
-                <option value="{{ book.pk }}">#{{ book.book_id }} - {{ book.title }} ({{ book.author }})</option>
+            <label class="block text-sm font-medium text-dark-grey mb-2">Book Copy *</label>
+            <select name="copy" class="w-full border border-light-grey rounded-lg px-4 py-2 focus:outline-none focus:border-primary bg-white" required>
+                <option value="">Select a book copy</option>
+                {% for copy in copies %}
+                <option value="{{ copy.pk }}">{{ copy.copy_id }} - {{ copy.book.title }} ({{ copy.book.author }})</option>
                 {% endfor %}
             </select>
-            {% if not books %}
-            <p class="text-sm text-warning mt-2">No available books. All books are currently on loan.</p>
+            {% if not copies %}
+            <p class="text-sm text-warning mt-2">No available copies. All copies are currently on loan.</p>
             {% endif %}
         </div>
         
         <div class="mb-6">
-            <label class="block text-sm font-medium text-dark-grey mb-2">Borrower Name *</label>
-            <input type="text" name="borrower_name" class="w-full border border-light-grey rounded-lg px-4 py-2 focus:outline-none focus:border-primary" required>
+            <label class="block text-sm font-medium text-dark-grey mb-2">Borrower *</label>
+            <select name="borrower" class="w-full border border-light-grey rounded-lg px-4 py-2 focus:outline-none focus:border-primary bg-white" required>
+                <option value="">Select a borrower</option>
+                {% for borrower in borrowers %}
+                <option value="{{ borrower.pk }}">{{ borrower.full_name }} ({{ borrower.email }})</option>
+                {% endfor %}
+            </select>
+            {% if not borrowers %}
+            <p class="text-sm text-warning mt-2">No active borrowers. Please add borrowers first.</p>
+            {% endif %}
         </div>
         
         <div class="bg-light-grey/30 rounded-lg p-4 mb-6">

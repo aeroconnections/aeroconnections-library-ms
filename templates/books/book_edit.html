@@ -2,6 +2,7 @@
 
 {% block title %}Edit Book #{{ book.book_id }} - AeroConnections Library{% endblock %}
 {% block page_title %}Edit Book #{{ book.book_id }}{% endblock %}
+{% block page_subtitle %}Update book information{% endblock %}
 
 {% block content %}
 <div class="max-w-xl">
@@ -27,6 +28,12 @@
         <div class="mb-6">
             <label class="block text-sm font-medium text-dark-grey mb-2">ISBN</label>
             <input type="text" name="isbn" value="{{ book.isbn }}" class="w-full border border-light-grey rounded-lg px-4 py-2 focus:outline-none focus:border-primary">
+        </div>
+        
+        <div class="mb-6">
+            <label class="block text-sm font-medium text-dark-grey mb-2">Number of Copies</label>
+            <input type="number" name="copies" value="{{ book.copies }}" min="1" class="w-full border border-light-grey rounded-lg px-4 py-2 focus:outline-none focus:border-primary">
+            <p class="text-xs text-dark-grey mt-1">How many copies of this book are in the library</p>
         </div>
         
         <div class="flex gap-4">

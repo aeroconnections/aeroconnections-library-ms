@@ -4,7 +4,7 @@ from django.contrib.auth.models import User
 from django.db import models
 from django.utils import timezone
 
-from apps.books.models import Book
+from apps.books.models import BookCopy
 
 
 class Loan(models.Model):
@@ -16,8 +16,9 @@ class Loan(models.Model):
     LOAN_DURATION_DAYS = 30
     DUE_SOON_THRESHOLD = 25
 
-    book = models.ForeignKey(Book, on_delete=models.CASCADE, related_name="loans")
-    book_id_snapshot = models.CharField(max_length=10, help_text="Snapshot of book's ID at checkout")
+    book_copy = models.ForeignKey(BookCopy, on_delete=models.CASCADE, related_name="loans")
+    copy_id_snapshot = models.CharField(max_length=15, help_text="Snapshot of copy ID at checkout")
+    book_title_snapshot = models.CharField(max_length=255, help_text="Snapshot of book title at checkout")
     borrower_name = models.CharField(max_length=255)
     checkout_date = models.DateField(default=timezone.now)
     due_date = models.DateField()
@@ -48,13 +49,14 @@ class Loan(models.Model):
         ordering = ["-checkout_date"]
 
     def __str__(self):
-        return f"#{self.book_id_snapshot} - {self.borrower_name}"
+        return f"{self.copy_id_snapshot} - {self.borrower_name}"
 
     def save(self, *args, **kwargs):
         if not self.due_date:
             self.due_date = self.checkout_date + timedelta(days=self.LOAN_DURATION_DAYS)
-        if not self.book_id_snapshot:
-            self.book_id_snapshot = self.book.book_id
+        if not self.copy_id_snapshot:
+            self.copy_id_snapshot = self.book_copy.copy_id
+            self.book_title_snapshot = self.book_copy.book.title
         super().save(*args, **kwargs)
 
     @property
@@ -106,8 +108,8 @@ class ReturnNote(models.Model):
         on_delete=models.CASCADE,
         related_name="return_notes"
     )
-    book = models.ForeignKey(
-        Book,
+    book_copy = models.ForeignKey(
+        BookCopy,
         on_delete=models.CASCADE,
         related_name="return_notes"
     )
@@ -134,4 +136,43 @@ class ReturnNote(models.Model):
         verbose_name_plural = "Return Notes"
 
     def __str__(self):
-        return f"Return Note for #{self.book.book_id} - {self.borrower_name}"
+        return f"Return Note for {self.book_copy.copy_id} - {self.borrower_name}"
+
+
+class ActivityLog(models.Model):
+    class Action(models.TextChoices):
+        CHECKOUT = "checkout", "Book Checked Out"
+        RETURN = "return", "Book Returned"
+        BOOK_CREATED = "book_created", "Book Added"
+        BOOK_UPDATED = "book_updated", "Book Updated"
+        BOOK_DELETED = "book_deleted", "Book Deleted"
+        BORROWER_CREATED = "borrower_created", "Borrower Added"
+        BORROWER_UPDATED = "borrower_updated", "Borrower Updated"
+        BORROWER_DEACTIVATED = "borrower_deactivated", "Borrower Deactivated"
+
+    action = models.CharField(max_length=30, choices=Action.choices)
+    description = models.TextField()
+    user = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="activity_logs"
+    )
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-timestamp"]
+        verbose_name = "Activity Log"
+        verbose_name_plural = "Activity Logs"
+
+    def __str__(self):
+        return f"{self.get_action_display()} - {self.timestamp.strftime('%Y-%m-%d %H:%M')}"
+
+    def save(self, *args, **kwargs):
+        if self.pk is not None:
+            raise NotImplementedError("Activity logs are immutable and cannot be modified")
+        super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        raise NotImplementedError("Activity logs are immutable and cannot be deleted")
+

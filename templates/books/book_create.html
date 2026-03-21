@@ -2,6 +2,7 @@
 
 {% block title %}Add Book - AeroConnections Library{% endblock %}
 {% block page_title %}Add Book{% endblock %}
+{% block page_subtitle %}Add a new book to the library{% endblock %}
 
 {% block content %}
 <div class="max-w-xl">
@@ -21,6 +22,12 @@
         <div class="mb-4">
             <label class="block text-sm font-medium text-dark-grey mb-2">ISBN</label>
             <input type="text" name="isbn" class="w-full border border-light-grey rounded-lg px-4 py-2 focus:outline-none focus:border-primary">
+        </div>
+        
+        <div class="mb-4">
+            <label class="block text-sm font-medium text-dark-grey mb-2">Number of Copies</label>
+            <input type="number" name="copies" value="1" min="1" class="w-full border border-light-grey rounded-lg px-4 py-2 focus:outline-none focus:border-primary">
+            <p class="text-xs text-dark-grey mt-1">How many copies of this book are in the library</p>
         </div>
         
         <div class="mb-6">

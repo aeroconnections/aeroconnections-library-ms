@@ -2,12 +2,9 @@
 
 {% block title %}Dashboard - AeroConnections Library{% endblock %}
 {% block page_title %}Dashboard{% endblock %}
+{% block page_subtitle %}Overview of library activity{% endblock %}
 
-{% block header_actions %}
-<a href="{% url 'loans:loan_create' %}" class="bg-primary hover:bg-primary-dark text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
-    + New Loan
-</a>
-{% endblock %}
+{% block header_actions %}{% endblock %}
 
 {% block content %}
 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -76,8 +73,8 @@
             {% for loan in recent_loans %}
             <div class="flex items-center justify-between py-2 border-b border-light-grey last:border-0">
                 <div>
-                    <p class="font-medium text-gray-900">#{{ loan.book_id_snapshot }} - {{ loan.borrower_name }}</p>
-                    <p class="text-sm text-dark-grey">{{ loan.checkout_date|date:"M d, Y" }}</p>
+                    <p class="font-medium text-gray-900">{{ loan.book_copy.book.title }}</p>
+                    <p class="text-sm text-dark-grey">{{ loan.book_id_snapshot }} - {{ loan.borrower_name }} - {{ loan.checkout_date|date:"M d, Y" }}</p>
                 </div>
                 <span class="px-2 py-1 text-xs font-medium rounded-full 
                     {% if loan.status == 'returned' %}bg-success-light text-success
@@ -100,8 +97,8 @@
             {% for loan in overdue_loans %}
             <div class="flex items-center justify-between py-2 border-b border-light-grey last:border-0">
                 <div>
-                    <p class="font-medium text-gray-900">#{{ loan.book_id_snapshot }} - {{ loan.book.title }}</p>
-                    <p class="text-sm text-danger">{{ loan.borrower_name }} - {{ loan.days_out }} days</p>
+                    <p class="font-medium text-gray-900">{{ loan.book_copy.book.title }}</p>
+                    <p class="text-sm text-danger">{{ loan.book_copy.copy_id }} - {{ loan.borrower_name }} - {{ loan.days_out }} days</p>
                 </div>
                 <a href="{% url 'loans:loan_detail' loan.pk %}" class="text-primary hover:text-primary-dark text-sm">View</a>
             </div>
@@ -118,13 +115,13 @@
     <h3 class="text-lg font-semibold text-warning mb-4">Due Soon (25+ days)</h3>
     <div class="space-y-4">
         {% for loan in due_soon_loans %}
-        <div class="flex items-center justify-between py-2 border-b border-warning/30 last:border-0">
-            <div>
-                <p class="font-medium text-gray-900">#{{ loan.book_id_snapshot }} - {{ loan.book.title }}</p>
-                <p class="text-sm text-dark-grey">{{ loan.borrower_name }} - {{ loan.days_out }} days out</p>
+            <div class="flex items-center justify-between py-2 border-b border-warning/30 last:border-0">
+                <div>
+                    <p class="font-medium text-gray-900">{{ loan.book_copy.book.title }}</p>
+                    <p class="text-sm text-dark-grey">{{ loan.book_copy.copy_id }} - {{ loan.borrower_name }} - {{ loan.days_out }} days out</p>
+                </div>
+                <a href="{% url 'loans:loan_detail' loan.pk %}" class="text-warning hover:text-yellow-700 text-sm font-medium">View</a>
             </div>
-            <a href="{% url 'loans:loan_detail' loan.pk %}" class="text-warning hover:text-yellow-700 text-sm font-medium">View</a>
-        </div>
         {% endfor %}
     </div>
 </div>
