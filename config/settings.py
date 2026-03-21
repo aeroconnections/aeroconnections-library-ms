@@ -57,6 +57,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                "apps.notifications.context_processors.branding_context",
             ],
         },
     },
@@ -141,6 +142,16 @@ EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "")
 DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "noreply@library.local")
 
 GOOGLE_CHAT_WEBHOOK_URL = os.getenv("GOOGLE_CHAT_WEBHOOK_URL", "")
+
+# Branding Settings
+LIBRARY_NAME = os.getenv("LIBRARY_NAME", "Library Management System")
+COMPANY_NAME = os.getenv("COMPANY_NAME", "AeroConnections")
+LOGO_URL = os.getenv("LOGO_URL", "/static/logo.png")
+
+# Color Theme
+PRIMARY_COLOR = os.getenv("PRIMARY_COLOR", "#DA291C")
+SECONDARY_COLOR = os.getenv("SECONDARY_COLOR", "#5B6770")
+ACCENT_COLOR = os.getenv("ACCENT_COLOR", "#C8C9C7")
 
 LOGGING = {
     "version": 1,
