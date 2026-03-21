@@ -1,42 +1,57 @@
 # AeroConnections Library Management System
 
-**Version 1.0.0** | A free and open-source library management system built with Django for tracking book inventory and loans.
+**Version 1.0.0** | A free and open-source library management system built with Django.
 
 **License:** AGPL-3.0 - This software is free and any derivative works must also be open source.
 
+[![Docker Hub](https://img.shields.io/docker/pulls/sachinaeroconnections/library-ms?style=flat-square)](https://hub.docker.com/r/sachinaeroconnections/library-ms)
+[![GitHub Actions](https://img.shields.io/github/actions/workflow/status/aeroconnections/library-ms/CI?style=flat-square)](https://github.com/aeroconnections/library-ms/actions)
+
 ## Features
 
-- **Book Inventory** — Add, edit, and track books with unique copy IDs (#01-1, #01-2, etc.)
-- **Book Copies** — Each physical book has a unique copy ID for precise tracking
+- **Book Copies** — Each physical book has a unique copy ID (e.g., #01-1, #01-2) for precise tracking
 - **Loan Management** — Checkout, return, and configurable loan duration (14-60 days)
-- **Days Tracking** — Automatic calculation of days since checkout
-- **Overdue Alerts** — Visual indicators for due soon and overdue items
 - **Borrower Management** — Add borrowers with activation/deactivation support
 - **Return Notes** — Optional notes and damage photos for returns
 - **Activity Log** — Immutable record of all system activities
 - **Webhook Support** — Configure webhooks for external notifications (Slack, Discord)
 - **Email Notifications** — SMTP configuration for email alerts
+- **Google Sheets Backup** — Sync data to Google Sheets for disaster recovery
 - **Configurable Settings** — Loan duration, due thresholds, and max books per borrower
-- **Staff Authentication** — Secure login with role-based permissions
-- **AeroConnections Branding** — Company colors and configurable logo
+- **Modern UI** — Responsive design with AeroConnections branding
 
 ## Quick Start
 
 ### Prerequisites
 
 - Python 3.11+
-- Docker & Docker Compose (for production)
+- Docker (for containerized deployment)
+
+### Docker (Recommended)
+
+```bash
+# Pull and run
+docker run -d -p 8000:8000 \
+  -e SECRET_KEY=your-secret-key \
+  -e DATABASE_URL=sqlite:///db.sqlite3 \
+  --name library-ms \
+  sachinaeroconnections/library-ms:latest
+
+# Or using docker-compose
+curl -O https://raw.githubusercontent.com/aeroconnections/library-ms/main/docker-compose.yml
+docker-compose up -d
+```
 
 ### Local Development
 
 ```bash
 # Clone the repository
-git clone https://github.com/YOUR_USERNAME/library-ms.git
+git clone https://github.com/aeroconnections/library-ms.git
 cd library-ms
 
 # Create virtual environment
 python -m venv venv
-source venv/bin/activate  # Windows: venv\Scripts\activate
+source venv/bin/activate
 
 # Install dependencies
 pip install -r requirements.txt
@@ -53,30 +68,53 @@ python manage.py runserver
 
 Visit `http://localhost:8000` and login at `http://localhost:8000/admin`
 
-### Docker (Production)
+### Test Data
 
 ```bash
-cp .env.example .env
-# Edit .env with your settings
+# Populate test data
+python manage.py populate_test_data
 
-docker-compose up -d
+# Remove test data
+python manage.py remove_test_data
 ```
+
+## Management Commands
+
+| Command | Description |
+|---------|-------------|
+| `populate_test_data` | Add sample books, borrowers, and loans |
+| `remove_test_data` | Remove all test data (with confirmation) |
+| `sync_to_sheets` | Sync data to Google Sheets for backup |
+
+## Tech Stack
+
+| Layer | Technology |
+|-------|------------|
+| Backend | Django 5 |
+| Frontend | TailwindCSS |
+| Database | SQLite (dev) / PostgreSQL (prod) |
+| Container | Docker |
+| Notifications | Webhooks, Email, Google Sheets |
 
 ## Project Structure
 
 ```
 library-ms/
 ├── apps/
-│   ├── books/              # Book inventory management
-│   ├── loans/              # Loan tracking & returns
-│   └── notifications/       # Google Chat alerts
+│   ├── books/              # Book & copy management
+│   ├── borrowers/          # Borrower management
+│   ├── loans/             # Loan tracking & returns
+│   └── notifications/      # Settings & branding
 ├── config/                 # Django settings
-├── templates/               # HTML templates
-├── static/                  # CSS, JS, logos
-├── media/                   # Uploaded images
+├── templates/              # HTML templates
+├── static/                 # CSS, JS
+├── media/                  # Uploaded images
+├── docker-compose.yml
+├── Dockerfile
+├── requirements.txt
 ├── README.md
-├── LICENSE                  # AGPL-3.0
-└── docker-compose.yml
+├── CHANGELOG.md
+└── LICENSE (AGPL-3.0)
 ```
 
 ## Loan System
@@ -91,16 +129,6 @@ library-ms/
 
 - [Design Documentation](design.md) — Brand guidelines and UI specs
 - [Contributing Guide](CONTRIBUTING.md) — How to contribute
-
-## Tech Stack
-
-| Layer | Technology |
-|-------|------------|
-| Backend | Django 5 |
-| Frontend | TailwindCSS |
-| Database | SQLite (dev) / PostgreSQL (prod) |
-| Task Queue | Celery + Redis |
-| Notifications | Google Chat Webhooks |
 
 ## Contributing
 

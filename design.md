@@ -2,9 +2,9 @@
 
 ## Brand Identity
 
-**Company:** AeroConnections
-**Product:** Library Management System
-**Version:** 1.0
+**Company:** AeroConnections  
+**Product:** Library Management System  
+**Version:** 1.0.0
 
 ### Mission Statement
 A clean, professional library management interface for AeroConnections staff to track book inventory, loans, and overdue returns.
@@ -23,16 +23,16 @@ A clean, professional library management interface for AeroConnections staff to 
 | Name | Pantone | Hex | Usage |
 |------|---------|-----|-------|
 | Primary Red | Pantone 485 C | `#DA291C` | Primary buttons, links, accents, active states |
-| Light Grey | Pantone Cool Grey 5 C | `#C8C9C7` | Page background, card backgrounds |
-| Dark Grey | Pantone Cool Grey 11 C | `#5B6770` | Body text, sidebar, secondary text |
-| White | - | `#FFFFFF` | Card surfaces, inputs, contrast areas |
+| Light Grey | Pantone Cool Grey 5 C | `#C8C9C7` | Borders, secondary elements |
+| Dark Grey | Pantone Cool Grey 11 C | `#5B6770` | Navigation, body text, sidebar |
+| White | - | `#FFFFFF` | Card surfaces, inputs, backgrounds |
 
 ### Semantic Colors
 | Name | Hex | Usage |
 |------|-----|-------|
-| Success | `#059669` | Returned status, available, positive actions |
+| Success | `#059669` | Returned status, available |
 | Warning | `#D97706` | Due soon (25+ days), pending states |
-| Danger | `#DA291C` | Overdue (30+ days), errors, destructive actions |
+| Danger | `#DA291C` | Overdue (30+ days), errors |
 
 ### Status Color Mapping
 | Status | Background | Text |
@@ -62,10 +62,6 @@ font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, san
 | Small | 0.875rem (14px) | 400 | Secondary text |
 | Caption | 0.75rem (12px) | 500 | Labels, badges |
 
-### Line Heights
-- Headings: 1.2
-- Body: 1.5
-
 ---
 
 ## Spacing System
@@ -78,9 +74,7 @@ font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, san
 |-------|-------|-------|
 | `space-1` | 4px | Tight gaps |
 | `space-2` | 8px | Icon gaps |
-| `space-3` | 12px | Form padding |
 | `space-4` | 16px | Standard padding |
-| `space-5` | 20px | Card padding |
 | `space-6` | 24px | Section gaps |
 | `space-8` | 32px | Page margins |
 
@@ -95,51 +89,49 @@ font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, san
 
 ## Components
 
+### Navigation Bar
+
+#### Top Navigation (Desktop)
+- Background: White with backdrop blur
+- Height: 64px
+- Logo: Left-aligned
+- Navigation links: Center
+- User menu: Right-aligned
+
+#### Navigation Links
+- Background: Transparent
+- Active: Background `#DA291C` (Red), text white
+- Hover: Background `rgba(91,103,112,0.1)`
+
 ### Buttons
 
 #### Primary Button (AeroConnections Red)
-- Background: `#DA291C` (Primary Red)
+- Background: `#DA291C`
 - Text: White, weight 500
 - Padding: 12px 16px
 - Border Radius: 8px
 - Hover: Darken to `#B8231A`
-- Active: Scale 0.98
-- Disabled: Opacity 50%
 
-#### Secondary Button
-- Background: White
-- Border: 1px `#C8C9C7` (Light Grey)
-- Text: `#5B6770` (Dark Grey)
-- Hover: Background `#C8C9C7`
-
-#### Ghost Button
-- Background: Transparent
-- Text: `#DA291C`
-- Hover: Background `#FEE2E2`
-
-#### Button Sizes
-| Size | Height | Padding |
-|------|--------|---------|
-| Small | 32px | 8px 12px |
-| Medium | 40px | 12px 16px |
-| Large | 48px | 16px 24px |
+#### Floating Action Button (FAB)
+- Position: Fixed bottom-right (24px)
+- Size: 56px × 56px
+- Background: Gradient `#DA291C` to `#B8231A`
+- Shadow: `0 4px 20px rgba(218, 41, 28, 0.4)`
 
 ### Form Inputs
 
 #### Text Input
 - Height: 40px
 - Border: 1px `#C8C9C7`
-- Border Radius: 8px
-- Padding: 12px horizontal
+- Border Radius: 10px
+- Padding: 10px 16px
 - Background: White
-- Focus: Border `#DA291C`, ring `#FEE2E2`
-- Placeholder: `#5B6770`
+- Focus: Border `#DA291C`, ring `rgba(218,41,28,0.1)`
 
-#### File Upload
-- Border: 2px dashed `#C8C9C7`
-- Border Radius: 8px
-- Hover: Border `#DA291C`
-- Accept: image/* files only
+#### Select Dropdown
+- Same styling as text input
+- Custom chevron icon
+- Appearance: none (for consistent styling)
 
 ### Status Badges
 
@@ -147,43 +139,24 @@ font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, san
 |--------|------------|------|
 | Available | `#D1FAE5` | `#059669` |
 | On Loan | `#C8C9C7` | `#5B6770` |
-| Due Soon (25+ days) | `#FEF3C7` | `#D97706` |
-| Overdue (30+ days) | `#FEE2E2` | `#DA291C` |
+| Due Soon | `#FEF3C7` | `#D97706` |
+| Overdue | `#FEE2E2` | `#DA291C` |
 | Returned | `#D1FAE5` | `#059669` |
 
 ### Cards
 
-#### Book Card
-- Background: White
-- Border: 1px `#C8C9C7`
-- Border Radius: 12px
-- Padding: 16px
-- Shadow: `0 1px 3px rgba(0,0,0,0.05)`
-- Hover: Shadow `0 4px 6px rgba(0,0,0,0.1)`
-
-#### Stat Card
+#### Content Card
 - Background: White
 - Border: 1px `#C8C9C7`
 - Border Radius: 12px
 - Padding: 20px
-- Icon: 40px circle with brand color background
+- Shadow: `0 1px 3px rgba(0,0,0,0.05)`
 
-### Navigation
-
-#### Sidebar (Desktop)
-- Width: 256px
-- Background: `#5B6770` (Dark Grey)
-- Text: White
-- Items: 48px height
-- Active: Background `#DA291C` (Red)
-- Hover: Background `rgba(255,255,255,0.1)`
-
-#### Top Bar
-- Height: 64px
+#### Stat Card
 - Background: White
-- Border-bottom: 1px `#C8C9C7`
-- Logo: Left-aligned
-- User menu: Right-aligned
+- Border Radius: 12px
+- Padding: 20px
+- Icon: Circle with brand color background
 
 ---
 
@@ -192,63 +165,35 @@ font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, san
 ### Dashboard
 ```
 ┌────────────────────────────────────────────────────────────┐
-│  AeroConnections Logo                                       │
-├──────────┬─────────────────────────────────────────────────┤
-│          │                                                 │
-│ Dashboard│  ┌─────────┐ ┌─────────┐ ┌─────────┐ ┌────────┐│
-│ ─────────│  │ Books   │ │Active   │ │Due Soon │ │Overdue ││
-│ Books    │  │   123   │ │  45     │ │   12    │ │   5    ││
-│ Loans    │  └─────────┘ └─────────┘ └─────────┘ └────────┘│
-│ Return   │                                                 │
-│ Notes    │  Recent Activity          Overdue Alerts        │
-│          │  ┌────────────────┐      ┌────────────────┐      │
-│ Settings │  │ • Book #12 out│      │ #7 - 35 days  │      │
-│          │  │ • Book #5 ret │      │ #15 - 32 days │      │
-│          │  └────────────────┘      └────────────────┘      │
-└──────────┴─────────────────────────────────────────────────┘
-```
-
-### Loan List
-```
-┌────────────────────────────────────────────────────────────┐
-│  Loans                               [+ New Loan] [Filter ▼] │
-├──────────┬─────────────────────────────────────────────────┤
-│          │                                                  │
-│ Dashboard│  ┌─────────────────────────────────────────────┐ │
-│ Books    │  │ ID │ Book │ Borrower │ Date │ Days │ Status│ │
-│ Loans    │  │ 01 │ Book │ John     │ Mar 1│  20  │Active │ │
-│ Return   │  │ 07 │ Book │ Jane     │ Feb15│  35  │OVERDUE│ │
-│ Notes    │  └─────────────────────────────────────────────┘ │
-│          │                                                  │
-└──────────┴─────────────────────────────────────────────────┘
+│ AeroConnections Logo                          Admin | User  │
+├──────────────────────────────────────────────────────────┤
+│ Books   Loans   Borrowers   Returns   Activity             │
+├──────────────────────────────────────────────────────────┤
+│                                                           │
+│  Dashboard                                                │
+│  Browse and manage your library collection                │
+│                                                           │
+│  ┌─────────┐ ┌─────────┐ ┌─────────┐ ┌────────┐         │
+│  │ Books   │ │ Active  │ │Due Soon │ │Overdue │         │
+│  │   12    │ │   10    │ │    2    │ │   3    │         │
+│  └─────────┘ └─────────┘ └─────────┘ └────────┘        │
+│                                                           │
+│  Overdue Books (3)           Due Soon (2)               │
+│  ┌──────────────────────┐    ┌──────────────────────┐   │
+│  │ Book Title          │    │ Book Title           │   │
+│  │ #01-1 - Name - 35d │    │ #03-2 - Name - 28d  │   │
+│  └──────────────────────┘    └──────────────────────┘   │
+│                                                           │
+└──────────────────────────────────────────────────────────┘
 ```
 
 ### Responsive Breakpoints
 
 | Breakpoint | Width | Layout |
 |------------|-------|--------|
-| Mobile | < 640px | Single column, bottom nav |
-| Tablet | 640px - 1024px | Collapsible sidebar |
-| Desktop | > 1024px | Full sidebar |
-
----
-
-## Loan System Logic
-
-### Days Calculation
-- `days_out` = Current date - Checkout date
-- `days_until_due` = Due date - Current date
-
-### Status Thresholds
-| Days Out | Status | Action |
-|----------|--------|--------|
-| 0-29 | On Loan | Normal |
-| 25-29 | Due Soon | Warning (amber) |
-| 30+ | Overdue | Alert (red) + Google Chat notification |
-
-### Default Loan Duration
-- 30 days
-- Renewal requires return + re-checkout
+| Mobile | < 640px | Single column |
+| Tablet | 640px - 1024px | Condensed nav |
+| Desktop | > 1024px | Full navigation |
 
 ---
 
@@ -261,34 +206,83 @@ font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, san
 | title | CharField | Book title |
 | author | CharField | Author name |
 | isbn | CharField | ISBN |
-| status | ChoiceField | Available, On Loan |
+| created_at | DateTime | Auto |
+
+### BookCopy
+| Field | Type | Notes |
+|-------|------|-------|
+| copy_id | CharField | Unique ID (e.g., 01-1, 01-2) |
+| book | ForeignKey | Link to Book |
+| status | ChoiceField | Available, On Loan, Damaged, Lost, Retired |
+| condition | CharField | Condition notes |
+| created_at | DateTime | Auto |
+
+### Borrower
+| Field | Type | Notes |
+|-------|------|-------|
+| full_name | CharField | Borrower's full name |
+| email | EmailField | Unique email |
+| phone | CharField | Phone number |
+| employment_type | ChoiceField | Permanent, Intern, Temporary |
+| is_active | BooleanField | Active/deactivated |
 | created_at | DateTime | Auto |
 
 ### Loan
 | Field | Type | Notes |
 |-------|------|-------|
-| book | ForeignKey | Link to book |
-| book_id_snapshot | CharField | Snapshot of book_id |
+| book_copy | ForeignKey | Link to BookCopy |
+| copy_id_snapshot | CharField | Snapshot of copy ID |
+| book_title_snapshot | CharField | Snapshot of book title |
 | borrower_name | CharField | Borrower's name |
 | checkout_date | DateField | Checkout date |
-| due_date | DateField | Checkout + 30 days |
+| due_date | DateField | Checkout + duration |
 | return_date | DateField | Actual return date |
 | status | ChoiceField | Active, Returned, Overdue |
 | notes | TextField | Optional return notes |
-| damage_image | ImageField | Optional damage photo |
 | created_by | ForeignKey | Staff user |
-| created_at | DateTime | Auto |
 
 ### ReturnNote
 | Field | Type | Notes |
 |-------|------|-------|
-| loan | ForeignKey | Link to loan |
-| book | ForeignKey | Link to book |
+| loan | ForeignKey | Link to Loan |
+| book_copy | ForeignKey | Link to BookCopy |
 | borrower_name | CharField | Snapshot of borrower |
 | note | TextField | Return notes (optional) |
 | image | ImageField | Damage photo (optional) |
 | created_by | ForeignKey | Staff user |
 | created_at | DateTime | Auto |
+
+### ActivityLog (Immutable)
+| Field | Type | Notes |
+|-------|------|-------|
+| action | ChoiceField | checkout, return, book_created, etc. |
+| description | TextField | Activity description |
+| timestamp | DateTime | Auto |
+| user | ForeignKey | Staff user |
+
+### LibrarySettings
+| Field | Type | Notes |
+|-------|------|-------|
+| loan_duration_days | Integer | Default 30 days |
+| due_soon_threshold | Integer | Default 25 days |
+| max_books_per_borrower | Integer | Default 5 |
+| webhook_url | URLField | Webhook URL |
+| webhook_secret | CharField | Webhook secret |
+| email_notifications_enabled | Boolean | Email toggle |
+| google_sheets_id | CharField | Google Sheets ID |
+
+### Branding
+| Field | Type | Notes |
+|-------|------|-------|
+| company_name | CharField | Company name |
+| library_name | CharField | Library name |
+| logo | ImageField | Logo image |
+| logo_invert | BooleanField | Invert logo for dark backgrounds |
+| primary_color | CharField | Primary brand color |
+| secondary_color | CharField | Secondary color |
+| accent_color | CharField | Accent color |
+| show_company_name | BooleanField | Toggle company name display |
+| show_library_name | BooleanField | Toggle library name display |
 
 ---
 
