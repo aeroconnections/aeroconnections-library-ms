@@ -25,12 +25,209 @@
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         }
+        
+        /* Animated Background */
+        .animated-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+            background: linear-gradient(135deg, #5B6770 0%, #3d454d 100%);
+        }
+        
+        .animated-bg::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 20% 80%, rgba(218, 41, 28, 0.15) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 20%, rgba(218, 41, 28, 0.1) 0%, transparent 50%),
+                        radial-gradient(circle at 40% 40%, rgba(200, 201, 199, 0.1) 0%, transparent 40%);
+            animation: pulse-bg 8s ease-in-out infinite;
+        }
+        
+        @keyframes pulse-bg {
+            0%, 100% { opacity: 0.6; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.05); }
+        }
+        
+        /* Floating Shapes */
+        .floating-shapes {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+        
+        .shape {
+            position: absolute;
+            opacity: 0.1;
+            animation: float 20s infinite ease-in-out;
+        }
+        
+        .shape-1 {
+            width: 300px;
+            height: 300px;
+            background: linear-gradient(135deg, #DA291C 0%, transparent 70%);
+            border-radius: 50%;
+            top: -100px;
+            left: -100px;
+            animation-delay: 0s;
+        }
+        
+        .shape-2 {
+            width: 200px;
+            height: 200px;
+            background: linear-gradient(135deg, #C8C9C7 0%, transparent 70%);
+            border-radius: 50%;
+            top: 50%;
+            right: -50px;
+            animation-delay: -5s;
+        }
+        
+        .shape-3 {
+            width: 150px;
+            height: 150px;
+            background: linear-gradient(135deg, #DA291C 0%, transparent 70%);
+            border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+            bottom: 10%;
+            left: 20%;
+            animation-delay: -10s;
+        }
+        
+        .shape-4 {
+            width: 100px;
+            height: 100px;
+            background: linear-gradient(135deg, #C8C9C7 0%, transparent 70%);
+            border-radius: 50%;
+            top: 30%;
+            left: 60%;
+            animation-delay: -15s;
+        }
+        
+        .shape-5 {
+            width: 250px;
+            height: 250px;
+            background: linear-gradient(135deg, #DA291C 0%, transparent 60%);
+            border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
+            bottom: -50px;
+            right: 20%;
+            animation-delay: -7s;
+        }
+        
+        @keyframes float {
+            0%, 100% {
+                transform: translate(0, 0) rotate(0deg);
+            }
+            25% {
+                transform: translate(30px, -30px) rotate(5deg);
+            }
+            50% {
+                transform: translate(0, -50px) rotate(0deg);
+            }
+            75% {
+                transform: translate(-30px, -30px) rotate(-5deg);
+            }
+        }
+        
+        /* Particles */
+        .particles {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+        }
+        
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: rgba(218, 41, 28, 0.4);
+            border-radius: 50%;
+            animation: drift 15s infinite linear;
+        }
+        
+        @keyframes drift {
+            0% {
+                transform: translateY(100vh) translateX(0);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-100vh) translateX(100px);
+                opacity: 0;
+            }
+        }
+        
+        /* Gradient Animation */
+        .gradient-overlay {
+            position: absolute;
+            width: 200%;
+            height: 200%;
+            top: -50%;
+            left: -50%;
+            background: conic-gradient(from 0deg at 50% 50%, 
+                rgba(218, 41, 28, 0.03) 0deg, 
+                transparent 60deg, 
+                rgba(200, 201, 199, 0.02) 120deg, 
+                transparent 180deg, 
+                rgba(218, 41, 28, 0.03) 240deg, 
+                transparent 300deg, 
+                rgba(200, 201, 199, 0.02) 360deg);
+            animation: rotate-gradient 30s linear infinite;
+        }
+        
+        @keyframes rotate-gradient {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Smooth wave effect */
+        .wave {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 200%;
+            height: 100px;
+            background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 320'%3E%3Cpath fill='%23DA291C' fill-opacity='0.05' d='M0,192L48,197.3C96,203,192,213,288,229.3C384,245,480,267,576,250.7C672,235,768,181,864,181.3C960,181,1056,235,1152,234.7C1248,235,1344,181,1392,154.7L1440,128L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z'%3E%3C/path%3E%3C/svg%3E") repeat-x;
+            background-size: 50% 100px;
+            animation: wave 20s linear infinite;
+            opacity: 0.5;
+        }
+        
+        @keyframes wave {
+            from { transform: translateX(0); }
+            to { transform: translateX(-50%); }
+        }
     </style>
     {% block extra_head %}{% endblock %}
 </head>
-<body class="bg-light-grey min-h-screen">
+<body class="min-h-screen">
+    <!-- Animated Background -->
+    <div class="animated-bg">
+        <div class="floating-shapes">
+            <div class="shape shape-1"></div>
+            <div class="shape shape-2"></div>
+            <div class="shape shape-3"></div>
+            <div class="shape shape-4"></div>
+            <div class="shape shape-5"></div>
+        </div>
+        <div class="particles" id="particles"></div>
+        <div class="gradient-overlay"></div>
+        <div class="wave"></div>
+    </div>
+    
     <div class="flex">
-        <aside class="w-64 bg-dark-grey min-h-screen fixed flex flex-col">
+        <aside class="w-64 bg-dark-grey/95 backdrop-blur-sm min-h-screen fixed flex flex-col z-10 border-r border-white/10">
             <div class="p-6 pb-4">
                 <img src="/static/logo.png" alt="AeroConnections" class="h-10 w-auto brightness-0 invert" onerror="this.style.display='none'">
                 <h1 class="text-white font-bold text-lg mt-2" id="logo-text">AeroConnections</h1>
@@ -82,7 +279,7 @@
         </aside>
         
         <main class="flex-1 ml-64">
-            <header class="bg-white border-b border-light-grey px-8 py-4 flex justify-between items-center">
+            <header class="bg-white/80 backdrop-blur-md border-b border-light-grey px-8 py-4 flex justify-between items-center">
                 <h2 class="text-xl font-semibold text-dark-grey">{% block page_title %}Dashboard{% endblock %}</h2>
                 <div class="flex items-center gap-4">
                     {% block header_actions %}{% endblock %}
@@ -92,7 +289,7 @@
             <div class="p-8">
                 {% if messages %}
                     {% for message in messages %}
-                        <div class="mb-4 p-4 rounded-lg {% if message.tags == 'success' %}bg-success-light text-success border border-success{% elif message.tags == 'error' %}bg-danger-light text-danger border border-danger{% else %}bg-white text-dark-grey border border-light-grey{% endif %}">
+                        <div class="mb-4 p-4 rounded-lg backdrop-blur-sm {% if message.tags == 'success' %}bg-success-light/90 text-success border border-success{% elif message.tags == 'error' %}bg-danger-light/90 text-danger border border-danger{% else %}bg-white/90 text-dark-grey border border-light-grey{% endif %}">
                             {{ message }}
                         </div>
                     {% endfor %}
@@ -103,6 +300,27 @@
         </main>
     </div>
     
+    <script>
+        // Create floating particles
+        const particlesContainer = document.getElementById('particles');
+        const particleCount = 20;
+        
+        for (let i = 0; i < particleCount; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'particle';
+            particle.style.left = Math.random() * 100 + '%';
+            particle.style.animationDelay = Math.random() * 15 + 's';
+            particle.style.animationDuration = (15 + Math.random() * 10) + 's';
+            
+            // Random colors
+            const colors = ['rgba(218, 41, 28, 0.4)', 'rgba(200, 201, 199, 0.4)', 'rgba(91, 103, 112, 0.3)'];
+            particle.style.background = colors[Math.floor(Math.random() * colors.length)];
+            particle.style.width = (3 + Math.random() * 4) + 'px';
+            particle.style.height = particle.style.width;
+            
+            particlesContainer.appendChild(particle);
+        }
+    </script>
     {% block extra_scripts %}{% endblock %}
 </body>
 </html>
