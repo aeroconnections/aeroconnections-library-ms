@@ -27,7 +27,7 @@ class SetupGateView(View):
         config = SetupConfig.get_config()
 
         if not config.setup_completed:
-            return HttpResponseRedirect(reverse_lazy("setup_wizard"))
+            return HttpResponseRedirect(reverse_lazy("setup:wizard"))
 
         if not config.setup_pin:
             return HttpResponseRedirect(reverse_lazy("account_login"))
@@ -44,7 +44,7 @@ class SetupGateView(View):
 
             if config.setup_pin == entered_pin:
                 request.session["setup_access"] = True
-                return HttpResponseRedirect(reverse_lazy("setup_wizard"))
+                return HttpResponseRedirect(reverse_lazy("setup:wizard"))
             else:
                 messages.error(request, "Invalid PIN. Please try again.")
 
@@ -59,8 +59,8 @@ class SetupWizardView(View):
 
         if config.setup_completed:
             if not request.session.get("setup_access"):
-                return HttpResponseRedirect(reverse_lazy("setup_gate"))
-            return HttpResponseRedirect(reverse_lazy("setup_security"))
+                return HttpResponseRedirect(reverse_lazy("setup:gate"))
+            return HttpResponseRedirect(reverse_lazy("setup:security"))
 
         initial_data = {
             "domain": f"{request.scheme}://{request.get_host()}",
@@ -129,7 +129,7 @@ class SetupSecurityView(View):
         config = SetupConfig.get_config()
 
         if not request.session.get("setup_access"):
-            return HttpResponseRedirect(reverse_lazy("setup_gate"))
+            return HttpResponseRedirect(reverse_lazy("setup:gate"))
 
         return render(request, "setup/security.html", {
             "form": ChangePinForm(),
