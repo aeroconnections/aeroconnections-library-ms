@@ -1,6 +1,6 @@
 # AeroConnections Library Management System
 
-**Version 1.0.5** | A free and open-source library management system built with Django.
+A free and open-source library management system built with Django.
 
 **License:** AGPL-3.0 - This software is free and any derivative works must also be open source.
 
