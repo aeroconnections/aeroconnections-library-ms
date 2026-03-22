@@ -126,9 +126,12 @@ docker run -d \
 ```
 
 For docker-compose, add to your service:
+
 ```yaml
-environment:
-  - CSRF_TRUSTED_ORIGINS=http://localhost:8000,https://your-domain.com
+services:
+  web:
+    environment:
+      - CSRF_TRUSTED_ORIGINS=http://localhost:8000,https://your-domain.com
 ```
 
 **Option 2: Update Domain in Database (Recommended)**
@@ -195,6 +198,7 @@ from apps.setup.models import SetupConfig
 SetupConfig.objects.all().delete()
 print('Setup configuration deleted. Access /setup/ to reconfigure.')
 "
+```
 
 ## Management Commands
 
