@@ -44,10 +44,12 @@ class SetupForm(forms.Form):
         label="Confirm Password"
     )
     setup_pin = forms.CharField(
-        max_length=255,
+        max_length=6,
+        min_length=4,
         widget=forms.PasswordInput(attrs={"class": "search-input"}),
-        label="Setup PIN (for future access)",
-        help_text="Use this PIN to access setup page later"
+        label="Setup PIN (4-6 digits)",
+        help_text="Use this PIN to access setup page later",
+        required=True
     )
     domain = forms.URLField(
         widget=forms.URLInput(attrs={"class": "search-input"}),

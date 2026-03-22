@@ -1,5 +1,6 @@
 from django.contrib.auth import get_user_model
 from django.db import models
+from django.db import IntegrityError
 
 User = get_user_model()
 
@@ -31,8 +32,10 @@ class SetupConfig(models.Model):
         return User.objects.exists()
 
     def save(self, *args, **kwargs):
-        if not SetupConfig.objects.exists():
-            super().save(*args, **kwargs)
+        if not self.pk:
+            try:
+                super().save(*args, **kwargs)
+            except IntegrityError:
+                pass
         else:
-            self.pk = SetupConfig.objects.first().pk
             super().save(*args, **kwargs)

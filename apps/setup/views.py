@@ -85,26 +85,29 @@ class SetupWizardView(View):
             due_soon_threshold = form.cleaned_data["due_soon_threshold"]
             max_books_per_borrower = form.cleaned_data["max_books_per_borrower"]
 
-            User.objects.create_superuser(
-                username=admin_username,
-                email=admin_email,
-                password=admin_password
-            )
+            if not User.objects.filter(username=admin_username).exists():
+                User.objects.create_superuser(
+                    username=admin_username,
+                    email=admin_email,
+                    password=admin_password
+                )
 
             from apps.notifications.models import Branding, LibrarySettings
 
-            LibrarySettings.objects.create(
-                loan_duration_days=loan_duration,
-                due_soon_threshold=due_soon_threshold,
-                max_books_per_borrower=max_books_per_borrower,
-                is_active=True
-            )
+            if not LibrarySettings.objects.exists():
+                LibrarySettings.objects.create(
+                    loan_duration_days=loan_duration,
+                    due_soon_threshold=due_soon_threshold,
+                    max_books_per_borrower=max_books_per_borrower,
+                    is_active=True
+                )
 
-            Branding.objects.create(
-                library_name=library_name,
-                company_name="AeroConnections",
-                is_active=True
-            )
+            if not Branding.objects.exists():
+                Branding.objects.create(
+                    library_name=library_name,
+                    company_name="AeroConnections",
+                    is_active=True
+                )
 
             config.setup_completed = True
             config.setup_pin = setup_pin
