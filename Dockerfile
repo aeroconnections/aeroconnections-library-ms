@@ -6,7 +6,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=1 \
     ALLOWED_HOSTS=*
 
-ENV CSRF_TRUSTED_ORIGINS=http://localhost,http://localhost:8000
+ENV CSRF_TRUSTED_ORIGINS=http://localhost,http://localhost:8000,https://library.li-stairs.ts.net:3002
 
 WORKDIR /app
 
