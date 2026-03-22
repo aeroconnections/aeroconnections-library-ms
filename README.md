@@ -1,9 +1,10 @@
 # AeroConnections Library Management System
 
-**Version 1.0.0** | A free and open-source library management system built with Django.
+**Version 1.0.5** | A free and open-source library management system built with Django.
 
 **License:** AGPL-3.0 - This software is free and any derivative works must also be open source.
 
+[![Docker Hub](https://img.shields.io/docker/v/sachinaeroconnections/library-ms?label=docker&style=flat-square)](https://hub.docker.com/r/sachinaeroconnections/library-ms)
 [![Docker Hub](https://img.shields.io/docker/pulls/sachinaeroconnections/library-ms?style=flat-square)](https://hub.docker.com/r/sachinaeroconnections/library-ms)
 [![GitHub Actions](https://img.shields.io/github/actions/workflow/status/aeroconnections/library-ms/CI?style=flat-square)](https://github.com/aeroconnections/library-ms/actions)
 
@@ -19,6 +20,7 @@
 - **Google Sheets Backup** — Sync data to Google Sheets for disaster recovery
 - **Configurable Settings** — Loan duration, due thresholds, and max books per borrower
 - **Modern UI** — Responsive design with AeroConnections branding
+- **Multi-platform** — Supports AMD64 and ARM64 architectures
 
 ## Quick Start
 
@@ -93,7 +95,7 @@ python manage.py remove_test_data
 | Backend | Django 5 |
 | Frontend | TailwindCSS |
 | Database | SQLite (dev) / PostgreSQL (prod) |
-| Container | Docker |
+| Container | Docker (Alpine-based) |
 | Notifications | Webhooks, Email, Google Sheets |
 
 ## Project Structure
