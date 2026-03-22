@@ -51,10 +51,10 @@ class SetupForm(forms.Form):
         help_text="Use this PIN to access setup page later",
         required=True
     )
-    domain = forms.URLField(
-        widget=forms.URLInput(attrs={"class": "search-input"}),
-        label="Your Domain",
-        help_text="The URL where this application will be accessed"
+    domain = forms.CharField(
+        widget=forms.TextInput(attrs={"class": "search-input"}),
+        label="Your Domain(s)",
+        help_text="Enter domains separated by commas (e.g., https://library.com, https://staging.library.com)"
     )
     loan_duration = forms.IntegerField(
         widget=forms.NumberInput(attrs={"class": "search-input"}),
@@ -83,6 +83,16 @@ class SetupForm(forms.Form):
         if User.objects.filter(username=username).exists():
             raise ValidationError("This username is already taken.")
         return username
+
+    def clean_domain(self):
+        domain = self.cleaned_data.get("domain")
+        if not domain:
+            return domain
+        domains = [d.strip() for d in domain.split(",") if d.strip()]
+        for d in domains:
+            if not d.startswith(("http://", "https://")):
+                raise ValidationError(f"Invalid domain: {d}. Must start with http:// or https://")
+        return ",".join(domains)
 
     def clean(self):
         cleaned_data = super().clean()

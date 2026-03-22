@@ -13,16 +13,31 @@ DEBUG = os.getenv("DEBUG", "True").lower() == "true"
 
 ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "*").split(",")
 
-CSRF_TRUSTED_ORIGINS = [
-    origin.strip()
-    for origin in os.environ.get("CSRF_TRUSTED_ORIGINS", "").split(",")
-    if origin.strip()
-] + [
-    "http://localhost:8000",
-    "http://127.0.0.1:8000",
-    "https://localhost:8000",
-    "https://127.0.0.1:8000",
-]
+
+def _get_csrf_trusted_origins():
+    origins = {
+        "http://localhost:8000",
+        "http://127.0.0.1:8000",
+        "https://localhost:8000",
+        "https://127.0.0.1:8000",
+    }
+    for origin in os.environ.get("CSRF_TRUSTED_ORIGINS", "").split(","):
+        if origin := origin.strip():
+            origins.add(origin)
+    try:
+        from apps.setup.models import SetupConfig
+
+        config = SetupConfig.objects.first()
+        if config and config.domain:
+            for domain in config.domain.split(","):
+                if domain := domain.strip():
+                    origins.add(domain)
+    except Exception:
+        pass
+    return list(origins)
+
+
+CSRF_TRUSTED_ORIGINS = _get_csrf_trusted_origins()
 
 INSTALLED_APPS = [
     "django.contrib.admin",

@@ -42,16 +42,16 @@
                         {% endif %}
                     </div>
                     <div class="md:col-span-2">
-                        <label for="id_domain" class="block text-sm font-medium text-dark-grey mb-2">Domain</label>
-                        <input type="url" name="domain" id="id_domain" 
+                        <label for="id_domain" class="block text-sm font-medium text-dark-grey mb-2">Domain(s)</label>
+                        <input type="text" name="domain" id="id_domain" 
                                value="{{ form.domain.value }}"
                                class="search-input w-full" 
-                               placeholder="https://your-domain.com"
+                               placeholder="https://your-domain.com, https://staging.your-domain.com"
                                required>
                         {% if form.domain.errors %}
                         <p class="text-danger text-sm mt-1">{{ form.domain.errors.0 }}</p>
                         {% endif %}
-                        <p class="text-xs text-gray-500 mt-1">The URL where this application will be accessed</p>
+                        <p class="text-xs text-gray-500 mt-1">Enter domains separated by commas (must include http:// or https://)</p>
                     </div>
                 </div>
             </div>
