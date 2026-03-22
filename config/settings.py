@@ -11,7 +11,18 @@ SECRET_KEY = os.getenv("SECRET_KEY", "django-insecure-dev-key-change-in-producti
 
 DEBUG = os.getenv("DEBUG", "True").lower() == "true"
 
-ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
+ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "*").split(",")
+
+CSRF_TRUSTED_ORIGINS = [
+    origin.strip() 
+    for origin in os.environ.get("CSRF_TRUSTED_ORIGINS", "").split(",") 
+    if origin.strip()
+] + [
+    "http://localhost:8000",
+    "http://127.0.0.1:8000",
+    "https://localhost:8000",
+    "https://127.0.0.1:8000",
+]
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -31,6 +42,7 @@ INSTALLED_APPS = [
     "apps.loans",
     "apps.borrowers",
     "apps.notifications",
+    "apps.setup",
 ]
 
 MIDDLEWARE = [

@@ -1,0 +1,161 @@
+{% extends "base.html" %}
+
+{% block title %}Setup Wizard - Library Management System{% endblock %}
+{% block page_title %}Library Setup{% endblock %}
+{% block page_subtitle %}Configure your library management system{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <div class="bg-white rounded-xl border border-light-grey p-8">
+        <div class="text-center mb-8">
+            <div class="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg class="w-8 h-8 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                </svg>
+            </div>
+            <h2 class="text-2xl font-bold text-dark-grey">Welcome to Library Setup</h2>
+            <p class="text-sm text-gray-500 mt-2">Configure your library management system</p>
+        </div>
+
+        <form method="post" class="space-y-6">
+            {% csrf_token %}
+
+            {% if form.non_field_errors %}
+            <div class="p-4 rounded-lg bg-danger-light text-danger border border-danger/20">
+                {% for error in form.non_field_errors %}
+                <p>{{ error }}</p>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <div class="border-b border-light-grey pb-6">
+                <h3 class="text-lg font-semibold text-dark-grey mb-4">Library Information</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="md:col-span-2">
+                        <label for="id_library_name" class="block text-sm font-medium text-dark-grey mb-2">Library Name</label>
+                        <input type="text" name="library_name" id="id_library_name" 
+                               value="{{ form.library_name.value|default:'Library Management System' }}"
+                               class="search-input w-full" required>
+                        {% if form.library_name.errors %}
+                        <p class="text-danger text-sm mt-1">{{ form.library_name.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    <div class="md:col-span-2">
+                        <label for="id_domain" class="block text-sm font-medium text-dark-grey mb-2">Domain</label>
+                        <input type="url" name="domain" id="id_domain" 
+                               value="{{ form.domain.value }}"
+                               class="search-input w-full" 
+                               placeholder="https://your-domain.com"
+                               required>
+                        {% if form.domain.errors %}
+                        <p class="text-danger text-sm mt-1">{{ form.domain.errors.0 }}</p>
+                        {% endif %}
+                        <p class="text-xs text-gray-500 mt-1">The URL where this application will be accessed</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="border-b border-light-grey pb-6">
+                <h3 class="text-lg font-semibold text-dark-grey mb-4">Admin Account</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="id_admin_username" class="block text-sm font-medium text-dark-grey mb-2">Username</label>
+                        <input type="text" name="admin_username" id="id_admin_username" 
+                               value="{{ form.admin_username.value|default:'admin' }}"
+                               class="search-input w-full" required>
+                        {% if form.admin_username.errors %}
+                        <p class="text-danger text-sm mt-1">{{ form.admin_username.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <label for="id_admin_email" class="block text-sm font-medium text-dark-grey mb-2">Email</label>
+                        <input type="email" name="admin_email" id="id_admin_email" 
+                               value="{{ form.admin_email.value|default:'' }}"
+                               class="search-input w-full" required>
+                        {% if form.admin_email.errors %}
+                        <p class="text-danger text-sm mt-1">{{ form.admin_email.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <label for="id_admin_password" class="block text-sm font-medium text-dark-grey mb-2">Password</label>
+                        <input type="password" name="admin_password" id="id_admin_password" 
+                               class="search-input w-full" required>
+                        {% if form.admin_password.errors %}
+                        <p class="text-danger text-sm mt-1">{{ form.admin_password.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <label for="id_admin_password_confirm" class="block text-sm font-medium text-dark-grey mb-2">Confirm Password</label>
+                        <input type="password" name="admin_password_confirm" id="id_admin_password_confirm" 
+                               class="search-input w-full" required>
+                        {% if form.admin_password_confirm.errors %}
+                        <p class="text-danger text-sm mt-1">{{ form.admin_password_confirm.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="border-b border-light-grey pb-6">
+                <h3 class="text-lg font-semibold text-dark-grey mb-4">Loan Settings</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <label for="id_loan_duration" class="block text-sm font-medium text-dark-grey mb-2">Loan Duration (days)</label>
+                        <input type="number" name="loan_duration" id="id_loan_duration" 
+                               value="{{ form.loan_duration.value|default:'30' }}"
+                               class="search-input w-full" min="1" max="365" required>
+                        {% if form.loan_duration.errors %}
+                        <p class="text-danger text-sm mt-1">{{ form.loan_duration.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <label for="id_due_soon_threshold" class="block text-sm font-medium text-dark-grey mb-2">Due Soon Threshold (days)</label>
+                        <input type="number" name="due_soon_threshold" id="id_due_soon_threshold" 
+                               value="{{ form.due_soon_threshold.value|default:'25' }}"
+                               class="search-input w-full" min="1" max="365" required>
+                        {% if form.due_soon_threshold.errors %}
+                        <p class="text-danger text-sm mt-1">{{ form.due_soon_threshold.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <label for="id_max_books_per_borrower" class="block text-sm font-medium text-dark-grey mb-2">Max Books per Borrower</label>
+                        <input type="number" name="max_books_per_borrower" id="id_max_books_per_borrower" 
+                               value="{{ form.max_books_per_borrower.value|default:'5' }}"
+                               class="search-input w-full" min="1" max="50" required>
+                        {% if form.max_books_per_borrower.errors %}
+                        <p class="text-danger text-sm mt-1">{{ form.max_books_per_borrower.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="pb-6">
+                <h3 class="text-lg font-semibold text-dark-grey mb-4">Security</h3>
+                <div class="grid grid-cols-1 gap-4">
+                    <div>
+                        <label for="id_setup_pin" class="block text-sm font-medium text-dark-grey mb-2">Setup PIN</label>
+                        <input type="password" name="setup_pin" id="id_setup_pin" 
+                               class="search-input w-full" 
+                               placeholder="Enter a PIN to access setup later"
+                               autocomplete="off"
+                               required>
+                        {% if form.setup_pin.errors %}
+                        <p class="text-danger text-sm mt-1">{{ form.setup_pin.errors.0 }}</p>
+                        {% endif %}
+                        <p class="text-xs text-gray-500 mt-1">Use this PIN to access the setup page in the future</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex justify-end gap-4">
+                <a href="{% url 'account_login' %}" class="px-6 py-3 border border-light-grey rounded-lg text-dark-grey hover:bg-light-grey/30 transition-colors">
+                    Cancel
+                </a>
+                <button type="submit" class="px-6 py-3 bg-primary hover:bg-primary-dark text-white font-medium rounded-lg transition-colors">
+                    Complete Setup
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

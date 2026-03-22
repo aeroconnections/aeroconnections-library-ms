@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.1.0] - 2026-03-22
+
+### Added
+- **Setup Wizard** - Guided first-time setup for library name, admin account, and branding
+- **PIN Protection** - Setup wizard secured with a 4-digit PIN
+- **CSRF_TRUSTED_ORIGINS** - Docker environment variable for domain-based access
+- **Setup Security Page** - Change PIN after initial setup
+
 ## [1.0.0] - 2026-03-22
 
 ### Added

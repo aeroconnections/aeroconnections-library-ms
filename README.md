@@ -20,13 +20,51 @@ A free and open-source library management system built with Django.
 - **Configurable Settings** — Loan duration, due thresholds, and max books per borrower
 - **Modern UI** — Responsive design with AeroConnections branding
 - **Multi-platform** — Supports AMD64 and ARM64 architectures
+- **Setup Wizard** — Easy first-time configuration with PIN protection
 
-## Quick Start
+## First-Time Setup
 
-### Prerequisites
+### 1. Access the Setup Wizard
 
-- Python 3.11+
-- Docker (for containerized deployment)
+After starting the application, navigate to:
+```
+http://localhost:8000/setup/
+```
+
+You will be prompted to enter a Setup PIN. Since this is your first time, you can proceed to the setup wizard directly.
+
+### 2. Configure Your Library
+
+Fill in the setup form with:
+
+| Field | Description |
+|-------|-------------|
+| Library Name | Your library's name |
+| Domain | The URL where the app will be accessed (auto-detected) |
+| Admin Username | Username for the admin account |
+| Admin Email | Email for the admin account |
+| Admin Password | Password for the admin account |
+| Loan Duration | Default loan period in days (default: 30) |
+| Due Soon Threshold | Days before due date to show warning (default: 25) |
+| Max Books | Maximum books a borrower can have (default: 5) |
+| Setup PIN | PIN to access setup page in the future |
+
+### 3. Access the Application
+
+After setup, log in at:
+```
+http://localhost:8000/accounts/login/
+```
+
+### Accessing Setup in the Future
+
+To access the setup page after initial configuration:
+
+1. Go to `/setup/`
+2. Enter your Setup PIN
+3. You can change settings or reset configurations
+
+## Deployment
 
 ### Docker (Recommended)
 
@@ -35,6 +73,8 @@ A free and open-source library management system built with Django.
 docker run -d -p 8000:8000 \
   -e SECRET_KEY=your-secret-key \
   -e DATABASE_URL=sqlite:///db.sqlite3 \
+  -e ALLOWED_HOSTS="*" \
+  -e CSRF_TRUSTED_ORIGINS="https://your-domain.com,http://localhost:8000" \
   --name library-ms \
   sachinaeroconnections/library-ms:latest
 
@@ -60,24 +100,11 @@ pip install -r requirements.txt
 # Run migrations
 python manage.py migrate
 
-# Create superuser
-python manage.py createsuperuser
-
 # Start development server
 python manage.py runserver
 ```
 
-Visit `http://localhost:8000` and login at `http://localhost:8000/admin`
-
-### Test Data
-
-```bash
-# Populate test data
-python manage.py populate_test_data
-
-# Remove test data
-python manage.py remove_test_data
-```
+Then access `/setup/` to configure your library.
 
 ## Management Commands
 
@@ -105,7 +132,8 @@ library-ms/
 │   ├── books/              # Book & copy management
 │   ├── borrowers/          # Borrower management
 │   ├── loans/             # Loan tracking & returns
-│   └── notifications/      # Settings & branding
+│   ├── notifications/      # Settings & branding
+│   └── setup/            # Setup wizard & configuration
 ├── config/                 # Django settings
 ├── templates/              # HTML templates
 ├── static/                 # CSS, JS

@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block title %}Security Settings - Library Management System{% endblock %}
+{% block page_title %}Security Settings{% endblock %}
+{% block page_subtitle %}Manage your setup PIN and security settings{% endblock %}
+
+{% block content %}
+<div class="max-w-md mx-auto">
+    <div class="bg-white rounded-xl border border-light-grey p-8">
+        <div class="text-center mb-6">
+            <div class="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg class="w-8 h-8 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/>
+                </svg>
+            </div>
+            <h2 class="text-xl font-bold text-dark-grey">Change Setup PIN</h2>
+            <p class="text-sm text-gray-500 mt-2">Update your setup PIN for future access</p>
+        </div>
+
+        <form method="post" class="space-y-4">
+            {% csrf_token %}
+
+            {% if messages %}
+            <div class="mb-4">
+                {% for message in messages %}
+                <div class="p-3 rounded-lg {% if message.tags == 'error' %}bg-danger-light text-danger border border-danger/20{% else %}bg-success-light text-success border border-success/20{% endif %}">
+                    {{ message }}
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <div>
+                <label for="id_current_pin" class="block text-sm font-medium text-dark-grey mb-2">Current PIN</label>
+                <input type="password" name="current_pin" id="id_current_pin" 
+                       class="search-input w-full" 
+                       autocomplete="off"
+                       required>
+                {% if form.current_pin.errors %}
+                <p class="text-danger text-sm mt-1">{{ form.current_pin.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+            <div>
+                <label for="id_new_pin" class="block text-sm font-medium text-dark-grey mb-2">New PIN</label>
+                <input type="password" name="new_pin" id="id_new_pin" 
+                       class="search-input w-full" 
+                       autocomplete="off"
+                       required>
+                {% if form.new_pin.errors %}
+                <p class="text-danger text-sm mt-1">{{ form.new_pin.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+            <div>
+                <label for="id_confirm_pin" class="block text-sm font-medium text-dark-grey mb-2">Confirm New PIN</label>
+                <input type="password" name="confirm_pin" id="id_confirm_pin" 
+                       class="search-input w-full" 
+                       autocomplete="off"
+                       required>
+                {% if form.confirm_pin.errors %}
+                <p class="text-danger text-sm mt-1">{{ form.confirm_pin.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+            <button type="submit" class="w-full bg-primary hover:bg-primary-dark text-white font-medium py-3 rounded-lg transition-colors">
+                Change PIN
+            </button>
+        </form>
+
+        <div class="mt-6 pt-6 border-t border-light-grey">
+            <a href="{% url 'books:book_list' %}" class="block text-center text-sm text-dark-grey hover:text-primary transition-colors">
+                Return to Dashboard
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
