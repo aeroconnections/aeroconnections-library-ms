@@ -14,8 +14,8 @@ DEBUG = os.getenv("DEBUG", "True").lower() == "true"
 ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "*").split(",")
 
 CSRF_TRUSTED_ORIGINS = [
-    origin.strip() 
-    for origin in os.environ.get("CSRF_TRUSTED_ORIGINS", "").split(",") 
+    origin.strip()
+    for origin in os.environ.get("CSRF_TRUSTED_ORIGINS", "").split(",")
     if origin.strip()
 ] + [
     "http://localhost:8000",
