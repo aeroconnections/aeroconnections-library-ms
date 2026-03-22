@@ -4,8 +4,9 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=1 \
-    ALLOWED_HOSTS=* \
-    CSRF_TRUSTED_ORIGINS=http://localhost http://localhost:8000
+    ALLOWED_HOSTS=*
+
+ENV CSRF_TRUSTED_ORIGINS=http://localhost,http://localhost:8000
 
 WORKDIR /app
 
