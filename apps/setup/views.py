@@ -26,7 +26,10 @@ class SetupGateView(View):
     def get(self, request):
         config = SetupConfig.get_config()
 
-        if config.setup_completed and not config.setup_pin:
+        if not config.setup_completed:
+            return HttpResponseRedirect(reverse_lazy("setup_wizard"))
+
+        if not config.setup_pin:
             return HttpResponseRedirect(reverse_lazy("account_login"))
 
         return render(request, "setup/gate.html", {
@@ -123,8 +126,6 @@ class SetupSecurityView(View):
         config = SetupConfig.get_config()
 
         if not request.session.get("setup_access"):
-            if not config.setup_completed:
-                return HttpResponseRedirect(reverse_lazy("setup_gate"))
             return HttpResponseRedirect(reverse_lazy("setup_gate"))
 
         return render(request, "setup/security.html", {
