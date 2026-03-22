@@ -6,7 +6,7 @@
 
 [![Docker Hub](https://img.shields.io/docker/v/sachinaeroconnections/library-ms?label=docker&style=flat-square)](https://hub.docker.com/r/sachinaeroconnections/library-ms)
 [![Docker Hub](https://img.shields.io/docker/pulls/sachinaeroconnections/library-ms?style=flat-square)](https://hub.docker.com/r/sachinaeroconnections/library-ms)
-[![GitHub Actions](https://img.shields.io/github/actions/workflow/status/aeroconnections/library-ms/CI?style=flat-square)](https://github.com/aeroconnections/library-ms/actions)
+[![CI](https://github.com/aeroconnections/library-ms/actions/workflows/CI.yml/badge.svg)](https://github.com/aeroconnections/library-ms/actions/workflows/CI.yml)
 
 ## Features
 
