@@ -40,14 +40,14 @@ Fill in the setup form with:
 | Field | Description |
 |-------|-------------|
 | Library Name | Your library's name |
-| Domain | The URL where the app will be accessed (auto-detected) |
+| Domain(s) | URL(s) where the app will be accessed. Supports multiple domains separated by commas (e.g., `https://library.com, https://staging.library.com`) |
 | Admin Username | Username for the admin account |
 | Admin Email | Email for the admin account |
 | Admin Password | Password for the admin account |
 | Loan Duration | Default loan period in days (default: 30) |
 | Due Soon Threshold | Days before due date to show warning (default: 25) |
 | Max Books | Maximum books a borrower can have (default: 5) |
-| Setup PIN | PIN to access setup page in the future |
+| Setup PIN | PIN to access setup page in the future (4-6 digits) |
 
 ### 3. Access the Application
 
@@ -105,6 +105,96 @@ python manage.py runserver
 ```
 
 Then access `/setup/` to configure your library.
+
+## Troubleshooting
+
+### CSRF Verification Failed (403 Error)
+
+If you see a `403 Forbidden - CSRF verification failed` error when accessing the application from a domain other than localhost, you need to add your domain to `CSRF_TRUSTED_ORIGINS`.
+
+**Option 1: Quick Fix with Environment Variable**
+
+```bash
+docker stop library-ms
+docker rm library-ms
+docker run -d \
+  --name library-ms \
+  -e "CSRF_TRUSTED_ORIGINS=http://localhost:8000,https://your-domain.com" \
+  -p 8000:8000 \
+  -v library-data:/app/data \
+  sachinaeroconnections/library-ms:latest
+```
+
+For docker-compose, add to your service:
+```yaml
+environment:
+  - CSRF_TRUSTED_ORIGINS=http://localhost:8000,https://your-domain.com
+```
+
+**Option 2: Update Domain in Database (Recommended)**
+
+If you've already completed the setup wizard, you can update your domain directly in the database:
+
+```bash
+# Enter the container shell
+docker exec -it library-ms python manage.py shell
+```
+
+Then run these commands:
+
+```python
+# View current domain
+from apps.setup.models import SetupConfig
+c = SetupConfig.objects.first()
+print(f"Current domain: {c.domain}")
+
+# Update domain (single domain)
+c.domain = 'https://your-domain.com'
+c.save()
+
+# Update domain (multiple domains)
+c.domain = 'https://your-domain.com, https://staging.your-domain.com'
+c.save()
+
+# Verify
+print(f"New domain: {c.domain}")
+```
+
+Or in a single command:
+
+```bash
+docker exec -it library-ms python manage.py shell -c "
+from apps.setup.models import SetupConfig
+c = SetupConfig.objects.first()
+c.domain = 'https://your-domain.com'
+c.save()
+print('Domain updated to:', c.domain)
+"
+```
+
+After updating the domain, restart the container:
+```bash
+docker restart library-ms
+```
+
+### View Current CSRF Trusted Origins
+
+To check which origins are currently trusted:
+
+```bash
+docker exec -it library-ms python manage.py shell -c "from django.conf import settings; print('Trusted origins:', settings.CSRF_TRUSTED_ORIGINS)"
+```
+
+### Reset Setup Configuration
+
+To reset the setup configuration and run the wizard again:
+
+```bash
+docker exec -it library-ms python manage.py shell -c "
+from apps.setup.models import SetupConfig
+SetupConfig.objects.all().delete()
+print('Setup configuration deleted. Access /setup/ to reconfigure.')
+"
 
 ## Management Commands
 
