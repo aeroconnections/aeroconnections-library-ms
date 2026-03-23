@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.2.1] - 2026-03-23
+
+### Fixed
+- **Data Persistence** - Database now stored at `/app/data/` for proper Docker volume mounting
+- **Clear All Data Command** - New management command to reset database completely
+
 ## [1.2.0] - 2026-03-23
 
 ### Added
