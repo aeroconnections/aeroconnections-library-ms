@@ -3,7 +3,7 @@ import io
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponse, JsonResponse
+from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 
 from apps.loans.models import ActivityLog, Loan, ReturnNote
