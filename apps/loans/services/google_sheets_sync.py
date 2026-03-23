@@ -96,10 +96,10 @@ class GoogleSheetsSync:
 
         try:
             flow = InstalledAppFlow.from_client_secrets_file(credentials_path, self.SCOPES)
-            
+
             if code_verifier:
                 flow.oauth2session.code_verifier = code_verifier
-            
+
             self.credentials = flow.fetch_token(
                 authorization_response=authorization_response_url
             )
