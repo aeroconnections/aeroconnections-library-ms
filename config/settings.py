@@ -39,6 +39,12 @@ def _get_csrf_trusted_origins():
 
 CSRF_TRUSTED_ORIGINS = _get_csrf_trusted_origins()
 
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+
+APP_VERSION = "1.2.5"
+GITHUB_REPO = "https://github.com/aeroconnections/aeroconnections-library-ms"
+DOCKERHUB_REPO = "https://hub.docker.com/r/sachinaeroconnections/library-ms"
+
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
@@ -86,6 +92,7 @@ TEMPLATES = [
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
                 "apps.notifications.context_processors.branding_context",
+                "config.context_processors.app_context",
             ],
         },
     },

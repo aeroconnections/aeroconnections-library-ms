@@ -4,6 +4,23 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.2.5] - 2026-03-23
+
+### Fixed
+- **OAuth HTTPS Detection** - Added `SECURE_PROXY_SSL_HEADER` for HTTPS detection behind proxies (Tailscale, Cloudflare, etc.)
+- **OAuth State Handling** - Fixed state validation and authorization_response URL for proper OAuth flow
+
+### Added
+- **App Version Footer** - Version number displayed in footer on all pages
+- **Repository Links** - GitHub and Docker Hub links in footer
+- **Settings Navbar Link** - Settings page accessible from navbar (superadmin only)
+
+## [1.2.4] - 2026-03-23
+
+### Added
+- **Settings Navbar Link** - Settings page accessible from navbar (superadmin only)
+- **google-auth-oauthlib** - Added package for OAuth authentication
+
 ## [1.2.3] - 2026-03-23
 
 ### Added

@@ -6,6 +6,8 @@ A free and open-source library management system built with Django.
 
 [![Docker Hub](https://img.shields.io/docker/v/sachinaeroconnections/library-ms?label=docker&style=flat-square)](https://hub.docker.com/r/sachinaeroconnections/library-ms)
 [![Docker Hub](https://img.shields.io/docker/pulls/sachinaeroconnections/library-ms?style=flat-square)](https://hub.docker.com/r/sachinaeroconnections/library-ms)
+[![GitHub release (latest by date)](https://img.shields.io/github/v/release/aeroconnections/aeroconnections-library-ms?style=flat-square)](https://github.com/aeroconnections/aeroconnections-library-ms/releases)
+[![GitHub](https://img.shields.io/github/license/aeroconnections/aeroconnections-library-ms?style=flat-square)](https://github.com/aeroconnections/aeroconnections-library-ms)
 
 ## Features
 
@@ -23,6 +25,16 @@ A free and open-source library management system built with Django.
 - **Setup Wizard** — Easy first-time configuration with PIN protection
 - **CSV Import** — Bulk import books and borrowers via CSV files
 - **Book Autocomplete** — Auto-fill author and ISBN when adding new books
+
+## New in v1.2.5
+
+### OAuth Authentication
+Browser-based Google Sheets OAuth flow with automatic HTTPS detection behind proxies (Tailscale, Cloudflare, etc.).
+
+### UI Improvements
+- App version displayed in footer on all pages
+- Direct links to GitHub and Docker Hub repositories
+- Settings page accessible from navbar (superadmin only)
 
 ## New in v1.2.0
 
