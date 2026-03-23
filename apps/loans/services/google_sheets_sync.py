@@ -134,22 +134,6 @@ class GoogleSheetsSync:
                 redirect_uri=redirect_uri
             )
 
-    def exchange_code(self, code, redirect_uri):
-        if not GOOGLE_SHEETS_AVAILABLE:
-            return False, "Google API client not installed"
-
-        credentials_path = self._get_credentials_path()
-        if not os.path.exists(credentials_path):
-            return False, f"Credentials file not found: {credentials_path}"
-
-        try:
-            flow = InstalledAppFlow.from_client_secrets_file(credentials_path, self.SCOPES)
-            flow.redirect_uri = redirect_uri
-            self.credentials = flow.fetch_token(
-                code=code,
-                redirect_uri=redirect_uri
-            )
-
             self._ensure_data_dir()
             token_path = self._get_token_path()
             with open(token_path, "w") as token:
