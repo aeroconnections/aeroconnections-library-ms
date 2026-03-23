@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.2.0] - 2026-03-23
+
+### Added
+- **CSV Import - Books** - Bulk import books via CSV file with preview and duplicate detection
+- **CSV Import - Borrowers** - Bulk import borrowers via CSV file with preview and duplicate detection
+- **Book Search Autocomplete** - Search existing books when adding new books to auto-fill author and ISBN
+
+### Fixed
+- **Book Edit** - Copies field now auto-fills with current count to prevent ValueError
+
 ## [1.1.0] - 2026-03-22
 
 ### Added

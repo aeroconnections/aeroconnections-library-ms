@@ -1,5 +1,9 @@
+import csv
+import io
+
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 
 from apps.loans.models import ActivityLog, Loan, ReturnNote
@@ -18,6 +22,24 @@ def book_list(request):
         ) | books.filter(book_id__icontains=search_query)
 
     return render(request, "books/book_list.html", {"books": books})
+
+
+def book_search_api(request):
+    query = request.GET.get("q", "")
+    if len(query) < 2:
+        return JsonResponse([], safe=False)
+
+    books = Book.objects.filter(title__icontains=query)[:10]
+    results = [
+        {
+            "id": book.pk,
+            "title": book.title,
+            "author": book.author,
+            "isbn": book.isbn or "",
+        }
+        for book in books
+    ]
+    return JsonResponse(results, safe=False)
 
 
 @login_required
@@ -74,7 +96,8 @@ def book_edit(request, pk):
         book.title = request.POST.get("title")
         book.author = request.POST.get("author")
         book.isbn = request.POST.get("isbn", "")
-        new_copies = int(request.POST.get("copies", book.total_copies))
+        copies_str = request.POST.get("copies", "")
+        new_copies = int(copies_str) if copies_str else book.total_copies
         new_book_id = request.POST.get("book_id")
         if new_book_id:
             book.book_id = new_book_id
@@ -156,3 +179,101 @@ def copy_delete(request, book_pk, copy_pk):
         return redirect("books:book_detail", pk=book.pk)
 
     return redirect("books:book_detail", pk=book.pk)
+
+
+@login_required
+def book_import(request):
+    if request.method == "POST":
+        csv_file = request.FILES.get("csv_file")
+        if not csv_file:
+            messages.error(request, "Please upload a CSV file.")
+            return redirect("books:book_import")
+
+        if not csv_file.name.endswith(".csv"):
+            messages.error(request, "File must be a CSV file.")
+            return redirect("books:book_import")
+
+        decoded_file = csv_file.read().decode("utf-8")
+        reader = csv.DictReader(io.StringIO(decoded_file))
+        reader.fieldnames = [fn.strip().lower() for fn in reader.fieldnames]
+
+        required_fields = ["title", "author"]
+        if not all(field in reader.fieldnames for field in required_fields):
+            messages.error(request, f"CSV must have columns: {', '.join(required_fields)}")
+            return redirect("books:book_import")
+
+        preview_data = {"new": [], "duplicates": [], "errors": []}
+
+        for row_num, row in enumerate(reader, start=2):
+            title = row.get("title", "").strip()
+            author = row.get("author", "").strip()
+            isbn = row.get("isbn", "").strip()
+            copies_str = row.get("copies", "1").strip()
+
+            if not title or not author:
+                preview_data["errors"].append({"row": row_num, "error": "Title and author are required"})
+                continue
+
+            try:
+                copies = int(copies_str) if copies_str else 1
+            except ValueError:
+                copies = 1
+
+            book_data = {
+                "title": title,
+                "author": author,
+                "isbn": isbn,
+                "copies": copies,
+                "row": row_num,
+            }
+
+            is_duplicate = False
+            if isbn:
+                if Book.objects.filter(isbn=isbn).exists():
+                    is_duplicate = True
+
+            if is_duplicate:
+                preview_data["duplicates"].append(book_data)
+            else:
+                preview_data["new"].append(book_data)
+
+        return render(request, "books/book_import.html", {"preview": preview_data})
+
+    return render(request, "books/book_import.html")
+
+
+@login_required
+def book_import_confirm(request):
+    if request.method == "POST":
+        books_data = request.POST.getlist("books_data")
+        imported_count = 0
+
+        for book_json in books_data:
+            try:
+                title, author, isbn, copies = book_json.split("|")
+                book = Book(
+                    title=title,
+                    author=author,
+                    isbn=isbn,
+                )
+                book.save()
+
+                copies = int(copies) if copies else 1
+                for _ in range(copies):
+                    BookCopy.objects.create(book=book)
+
+                imported_count += 1
+            except Exception:
+                pass
+
+        if imported_count > 0:
+            ActivityLog.objects.create(
+                action=ActivityLog.Action.BOOK_CREATED,
+                description=f"Imported {imported_count} book(s) via CSV",
+                user=request.user,
+            )
+            messages.success(request, f"Successfully imported {imported_count} book(s).")
+
+        return redirect("books:book_list")
+
+    return redirect("books:book_import")

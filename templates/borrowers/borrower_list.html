@@ -27,6 +27,9 @@
         {% if request.GET.q or request.GET.status or request.GET.employment_type %}
         <a href="{% url 'borrowers:borrower_list' %}" class="text-dark-grey hover:text-primary px-4 py-2">Clear</a>
         {% endif %}
+        <a href="{% url 'borrowers:borrower_import' %}" class="bg-success hover:bg-success-dark text-white px-4 py-2 rounded-lg font-medium transition-colors ml-auto">
+            Import CSV
+        </a>
     </form>
 </div>
 
