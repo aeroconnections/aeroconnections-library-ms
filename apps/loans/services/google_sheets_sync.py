@@ -1,5 +1,8 @@
+import base64
+import hashlib
 import logging
 import os
+import secrets
 from datetime import datetime
 
 from django.conf import settings
@@ -49,6 +52,114 @@ class GoogleSheetsSync:
             os.makedirs(data_dir)
         return data_dir
 
+    @staticmethod
+    def generate_code_verifier(length=64):
+        return secrets.token_urlsafe(length)
+
+    @staticmethod
+    def generate_code_challenge(verifier):
+        digest = hashlib.sha256(verifier.encode()).digest()
+        return base64.urlsafe_b64encode(digest).rstrip(b'=').decode()
+
+    def get_auth_url(self, redirect_uri):
+        if not GOOGLE_SHEETS_AVAILABLE:
+            return None, "Google API client not installed", None, None
+
+        credentials_path = self._get_credentials_path()
+        if not os.path.exists(credentials_path):
+            return None, f"Credentials file not found: {credentials_path}", None, None
+
+        try:
+            code_verifier = self.generate_code_verifier()
+            code_challenge = self.generate_code_challenge(code_verifier)
+
+            flow = InstalledAppFlow.from_client_secrets_file(credentials_path, self.SCOPES)
+            flow.redirect_uri = redirect_uri
+            auth_url, state = flow.authorization_url(
+                prompt="consent",
+                access_type="offline",
+                include_granted_scopes="true",
+                code_challenge=code_challenge,
+                code_challenge_method="S256"
+            )
+            return auth_url, None, state, code_verifier
+        except Exception as e:
+            return None, str(e), None, None
+
+    def handle_callback(self, authorization_response_url, code_verifier=None):
+        if not GOOGLE_SHEETS_AVAILABLE:
+            return False, "Google API client not installed"
+
+        credentials_path = self._get_credentials_path()
+        if not os.path.exists(credentials_path):
+            return False, f"Credentials file not found: {credentials_path}"
+
+        try:
+            flow = InstalledAppFlow.from_client_secrets_file(credentials_path, self.SCOPES)
+            
+            if code_verifier:
+                flow.oauth2session.code_verifier = code_verifier
+            
+            self.credentials = flow.fetch_token(
+                authorization_response=authorization_response_url
+            )
+
+            self._ensure_data_dir()
+            token_path = self._get_token_path()
+            with open(token_path, "w") as token:
+                token.write(self.credentials.to_json())
+
+            self.service = build("sheets", "v4", credentials=self.credentials)
+            return True, "Authentication successful"
+        except Exception as e:
+            return False, str(e)
+
+    def get_auth_url_console(self, redirect_uri):
+        if not GOOGLE_SHEETS_AVAILABLE:
+            return None, "Google API client not installed", None
+
+        credentials_path = self._get_credentials_path()
+        if not os.path.exists(credentials_path):
+            return None, f"Credentials file not found: {credentials_path}", None
+
+        try:
+            flow = InstalledAppFlow.from_client_secrets_file(credentials_path, self.SCOPES)
+            flow.redirect_uri = redirect_uri
+            auth_url, state = flow.authorization_url(
+                prompt="consent",
+                access_type="offline",
+                include_granted_scopes="true"
+            )
+            return auth_url, None, state
+        except Exception as e:
+            return None, str(e), None
+
+    def exchange_code(self, code, redirect_uri):
+        if not GOOGLE_SHEETS_AVAILABLE:
+            return False, "Google API client not installed"
+
+        credentials_path = self._get_credentials_path()
+        if not os.path.exists(credentials_path):
+            return False, f"Credentials file not found: {credentials_path}"
+
+        try:
+            flow = InstalledAppFlow.from_client_secrets_file(credentials_path, self.SCOPES)
+            flow.redirect_uri = redirect_uri
+            self.credentials = flow.fetch_token(
+                code=code,
+                redirect_uri=redirect_uri
+            )
+
+            self._ensure_data_dir()
+            token_path = self._get_token_path()
+            with open(token_path, "w") as token:
+                token.write(self.credentials.to_json())
+
+            self.service = build("sheets", "v4", credentials=self.credentials)
+            return True, "Authentication successful"
+        except Exception as e:
+            return False, str(e)
+
     def is_available(self):
         return GOOGLE_SHEETS_AVAILABLE
 
@@ -84,48 +195,6 @@ class GoogleSheetsSync:
 
     def is_connected(self):
         return self.is_authenticated() and self.spreadsheet_id
-
-    def get_auth_url(self, redirect_uri):
-        if not GOOGLE_SHEETS_AVAILABLE:
-            return None, "Google API client not installed", None
-
-        credentials_path = self._get_credentials_path()
-        if not os.path.exists(credentials_path):
-            return None, f"Credentials file not found: {credentials_path}"
-
-        try:
-            flow = InstalledAppFlow.from_client_secrets_file(credentials_path, self.SCOPES)
-            flow.redirect_uri = redirect_uri
-            auth_url, state = flow.authorization_url(
-                prompt="consent",
-                access_type="offline",
-                include_granted_scopes="true"
-            )
-            return auth_url, None, state
-        except Exception as e:
-            return None, str(e), None
-
-    def handle_callback(self, authorization_response_url):
-        if not GOOGLE_SHEETS_AVAILABLE:
-            return False, "Google API client not installed"
-
-        credentials_path = self._get_credentials_path()
-        if not os.path.exists(credentials_path):
-            return False, f"Credentials file not found: {credentials_path}"
-
-        try:
-            flow = InstalledAppFlow.from_client_secrets_file(credentials_path, self.SCOPES)
-            self.credentials = flow.fetch_token(authorization_response=authorization_response_url)
-
-            self._ensure_data_dir()
-            token_path = self._get_token_path()
-            with open(token_path, "w") as token:
-                token.write(self.credentials.to_json())
-
-            self.service = build("sheets", "v4", credentials=self.credentials)
-            return True, "Authentication successful"
-        except Exception as e:
-            return False, str(e)
 
     def save_credentials(self, credentials_json):
         try:
