@@ -120,6 +120,43 @@ python manage.py runserver
 
 Then access `/setup/` to configure your library.
 
+## Google Sheets Backup
+
+### Setup
+
+1. Go to **Settings > Google Sheets** (`/settings/sheets/`)
+2. Copy your OAuth credentials file to the container:
+   ```bash
+   docker cp sheets_credentials.json library-ms:/app/data/
+   ```
+3. Click **"Connect Google Sheets"**
+4. Sign in with your Google account and grant permissions
+5. Click **"Create Spreadsheet & Sync All Data"** for first-time sync
+
+### How It Works
+
+- Data is automatically synced whenever you:
+  - Check out or return a book
+  - Add or remove a borrower
+  - Add or remove a book
+- Manual sync available anytime via **"Sync Now"** button
+- Credentials and data are stored in `/app/data/` (persists with Docker volume)
+
+### OAuth Credentials Setup
+
+1. Go to [Google Cloud Console](https://console.cloud.google.com)
+2. Create a new project or select existing
+3. Enable **Google Sheets API**
+4. Go to **Credentials** > **Create Credentials** > **OAuth client ID**
+5. Application type: **Desktop app**
+6. Download the JSON file and rename it to `sheets_credentials.json`
+
+### Manual Sync Command
+
+```bash
+docker exec -it library-ms python manage.py sync_to_sheets
+```
+
 ## Troubleshooting
 
 ### CSRF Verification Failed (403 Error)

@@ -19,6 +19,14 @@ def log_activity(action, description, user):
     )
 
 
+def trigger_sheets_sync():
+    try:
+        from apps.loans.services.google_sheets_sync import auto_sync
+        auto_sync()
+    except Exception:
+        pass
+
+
 @login_required
 def loan_list(request):
     active_loans = Loan.objects.select_related("book_copy", "book_copy__book").filter(
@@ -92,6 +100,7 @@ def loan_create(request):
             f"Copy {book_copy.copy_id} ({book_copy.book.title}) checked out to {borrower.full_name}",
             request.user
         )
+        trigger_sheets_sync()
 
         messages.success(request, f"Copy {book_copy.copy_id} checked out to {borrower.full_name}.")
         return redirect("loans:loan_list")
@@ -144,6 +153,7 @@ def loan_return(request, pk):
             f"Copy {loan.book_copy.copy_id} ({loan.book_copy.book.title}) returned by {loan.borrower_name}",
             request.user
         )
+        trigger_sheets_sync()
 
         messages.success(request, f"Copy {loan.book_copy.copy_id} returned successfully.")
         return redirect("loans:loan_list")

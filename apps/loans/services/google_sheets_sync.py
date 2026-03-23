@@ -1,7 +1,10 @@
+import logging
 import os
 from datetime import datetime
 
 from django.conf import settings
+
+logger = logging.getLogger(__name__)
 
 try:
     from google.auth.transport.requests import Request
@@ -17,49 +20,155 @@ except ImportError:
 
 class GoogleSheetsSync:
     SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
-    TOKEN_PATH = "sheets_token.json"
-    CREDENTIALS_PATH = os.path.join(settings.BASE_DIR, "sheets_credentials.json")
 
     def __init__(self):
         self.service = None
         self.credentials = None
-        self.spreadsheet_id = getattr(settings, "GOOGLE_SHEETS_ID", None)
-        if not self.spreadsheet_id:
-            try:
-                from apps.notifications.models import LibrarySettings
-                settings_obj = LibrarySettings.get_active()
-                if settings_obj and settings_obj.google_sheets_id:
-                    self.spreadsheet_id = settings_obj.google_sheets_id
-            except Exception:
-                pass
+        self.spreadsheet_id = None
+        self._load_spreadsheet_id()
+
+    def _load_spreadsheet_id(self):
+        try:
+            from apps.notifications.models import LibrarySettings
+
+            settings_obj = LibrarySettings.get_active()
+            if settings_obj and settings_obj.google_sheets_id:
+                self.spreadsheet_id = settings_obj.google_sheets_id
+        except Exception:
+            pass
+
+    def _get_credentials_path(self):
+        return os.path.join(settings.BASE_DIR, "data", "sheets_credentials.json")
+
+    def _get_token_path(self):
+        return os.path.join(settings.BASE_DIR, "data", "sheets_token.json")
+
+    def _ensure_data_dir(self):
+        data_dir = os.path.join(settings.BASE_DIR, "data")
+        if not os.path.exists(data_dir):
+            os.makedirs(data_dir)
+        return data_dir
+
+    def is_available(self):
+        return GOOGLE_SHEETS_AVAILABLE
+
+    def is_configured(self):
+        return os.path.exists(self._get_credentials_path())
+
+    def is_authenticated(self):
+        if not self.is_configured():
+            return False
+
+        try:
+            creds = None
+            token_path = self._get_token_path()
+            if os.path.exists(token_path):
+                creds = Credentials.from_authorized_user_file(token_path, self.SCOPES)
+
+            if creds and creds.valid:
+                self.credentials = creds
+                self.service = build("sheets", "v4", credentials=creds)
+                return True
+
+            if creds and creds.expired and creds.refresh_token:
+                creds.refresh(Request())
+                with open(token_path, "w") as token:
+                    token.write(creds.to_json())
+                self.credentials = creds
+                self.service = build("sheets", "v4", credentials=creds)
+                return True
+        except Exception:
+            pass
+
+        return False
+
+    def is_connected(self):
+        return self.is_authenticated() and self.spreadsheet_id
+
+    def get_auth_url(self, redirect_uri):
+        if not GOOGLE_SHEETS_AVAILABLE:
+            return None, "Google API client not installed"
+
+        credentials_path = self._get_credentials_path()
+        if not os.path.exists(credentials_path):
+            return None, f"Credentials file not found: {credentials_path}"
+
+        flow = InstalledAppFlow.from_client_secrets_file(credentials_path, self.SCOPES)
+        flow.redirect_uri = redirect_uri
+        auth_url, _ = flow.authorization_url(prompt="consent", access_type="offline")
+        return auth_url, None
+
+    def handle_callback(self, code, redirect_uri):
+        if not GOOGLE_SHEETS_AVAILABLE:
+            return False, "Google API client not installed"
+
+        credentials_path = self._get_credentials_path()
+        if not os.path.exists(credentials_path):
+            return False, f"Credentials file not found: {credentials_path}"
+
+        try:
+            flow = InstalledAppFlow.from_client_secrets_file(credentials_path, self.SCOPES)
+            flow.redirect_uri = redirect_uri
+            self.credentials = flow.fetch_token(code=code)
+
+            self._ensure_data_dir()
+            token_path = self._get_token_path()
+            with open(token_path, "w") as token:
+                token.write(self.credentials.to_json())
+
+            self.service = build("sheets", "v4", credentials=self.credentials)
+            return True, "Authentication successful"
+        except Exception as e:
+            return False, str(e)
+
+    def save_credentials(self, credentials_json):
+        try:
+            self._ensure_data_dir()
+            token_path = self._get_token_path()
+            with open(token_path, "w") as f:
+                f.write(credentials_json)
+            return self.is_authenticated()
+        except Exception as e:
+            logger.error(f"Failed to save credentials: {e}")
+            return False
 
     def authenticate(self):
         if not GOOGLE_SHEETS_AVAILABLE:
             return False, "Google API client not installed. Run: pip install google-api-python-client google-auth"
 
-        if not os.path.exists(self.CREDENTIALS_PATH):
-            return False, f"Credentials file not found: {self.CREDENTIALS_PATH}"
+        credentials_path = self._get_credentials_path()
+        if not os.path.exists(credentials_path):
+            return False, f"Credentials file not found: {credentials_path}"
 
         creds = None
-        if os.path.exists(self.TOKEN_PATH):
-            creds = Credentials.from_authorized_user_file(self.TOKEN_PATH, self.SCOPES)
+        token_path = self._get_token_path()
+        if os.path.exists(token_path):
+            creds = Credentials.from_authorized_user_file(token_path, self.SCOPES)
 
         if not creds or not creds.valid:
             if creds and creds.expired and creds.refresh_token:
                 creds.refresh(Request())
             else:
-                flow = InstalledAppFlow.from_client_secrets_file(self.CREDENTIALS_PATH, self.SCOPES)
+                flow = InstalledAppFlow.from_client_secrets_file(credentials_path, self.SCOPES)
                 creds = flow.run_local_server(port=0)
 
-            with open(self.TOKEN_PATH, "w") as token:
+            with open(token_path, "w") as token:
                 token.write(creds.to_json())
 
         self.credentials = creds
         self.service = build("sheets", "v4", credentials=creds)
         return True, "Authenticated successfully"
 
+    def disconnect(self):
+        token_path = self._get_token_path()
+        if os.path.exists(token_path):
+            os.remove(token_path)
+        self.service = None
+        self.credentials = None
+        return True
+
     def get_or_create_spreadsheet(self, title=None):
-        if not self.service:
+        if not self.is_authenticated():
             return None, "Not authenticated"
 
         if self.spreadsheet_id:
@@ -70,22 +179,10 @@ class GoogleSheetsSync:
         spreadsheet = {
             "properties": {"title": title},
             "sheets": [
-                {
-                    "properties": {"title": "Books"},
-                    "data": {"rowData": []},
-                },
-                {
-                    "properties": {"title": "Copies"},
-                    "data": {"rowData": []},
-                },
-                {
-                    "properties": {"title": "Borrowers"},
-                    "data": {"rowData": []},
-                },
-                {
-                    "properties": {"title": "Loans"},
-                    "data": {"rowData": []},
-                },
+                {"properties": {"title": "Books"}},
+                {"properties": {"title": "Copies"}},
+                {"properties": {"title": "Borrowers"}},
+                {"properties": {"title": "Loans"}},
             ],
         }
 
@@ -96,10 +193,22 @@ class GoogleSheetsSync:
         )
 
         self.spreadsheet_id = spreadsheet.get("spreadsheetId")
+        self._save_spreadsheet_id()
         return self.spreadsheet_id, f"Created new spreadsheet: {self.spreadsheet_id}"
 
+    def _save_spreadsheet_id(self):
+        try:
+            from apps.notifications.models import LibrarySettings
+
+            settings_obj = LibrarySettings.get_active()
+            if settings_obj:
+                settings_obj.google_sheets_id = self.spreadsheet_id
+                settings_obj.save()
+        except Exception:
+            pass
+
     def clear_sheet(self, sheet_name):
-        if not self.service or not self.spreadsheet_id:
+        if not self.is_authenticated() or not self.spreadsheet_id:
             return False, "Not connected"
 
         try:
@@ -113,7 +222,7 @@ class GoogleSheetsSync:
             return False, str(e)
 
     def update_sheet(self, sheet_name, data):
-        if not self.service or not self.spreadsheet_id:
+        if not self.is_authenticated() or not self.spreadsheet_id:
             return False, "Not connected"
 
         try:
@@ -245,7 +354,7 @@ class GoogleSheetsSync:
 
         results.append(("Spreadsheet", self.get_or_create_spreadsheet()))
 
-        if self.spreadsheet_id:
+        if self.spreadsheet_id and self.is_authenticated():
             results.append(("Books", self.sync_books()))
             results.append(("Copies", self.sync_copies()))
             results.append(("Borrowers", self.sync_borrowers()))
@@ -257,3 +366,20 @@ class GoogleSheetsSync:
         if self.spreadsheet_id:
             return f"https://docs.google.com/spreadsheets/d/{self.spreadsheet_id}"
         return None
+
+
+def auto_sync():
+    if not GOOGLE_SHEETS_AVAILABLE:
+        return
+
+    try:
+        sync = GoogleSheetsSync()
+        if sync.is_connected():
+            sync.sync_all()
+            logger.info("Auto-sync completed successfully")
+        elif sync.is_authenticated() and not sync.spreadsheet_id:
+            sync.get_or_create_spreadsheet()
+            sync.sync_all()
+            logger.info("Auto-sync: created spreadsheet and synced all data")
+    except Exception as e:
+        logger.error(f"Auto-sync failed: {e}")

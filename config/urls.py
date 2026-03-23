@@ -10,6 +10,7 @@ urlpatterns = [
     path("", include("apps.books.urls")),
     path("", include("apps.loans.urls")),
     path("borrowers/", include("apps.borrowers.urls")),
+    path("", include("apps.notifications.urls")),
 ]
 
 if settings.DEBUG:

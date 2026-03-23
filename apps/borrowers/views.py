@@ -18,6 +18,14 @@ def log_activity(action, description, user):
     )
 
 
+def trigger_sheets_sync():
+    try:
+        from apps.loans.services.google_sheets_sync import auto_sync
+        auto_sync()
+    except Exception:
+        pass
+
+
 @login_required
 def borrower_list(request):
     status_filter = request.GET.get("status")
@@ -67,6 +75,7 @@ def borrower_create(request):
             f"Borrower '{full_name}' added ({borrower.get_employment_type_display()})",
             request.user
         )
+        trigger_sheets_sync()
 
         messages.success(request, f"Borrower '{full_name}' added successfully.")
         return redirect("borrowers:borrower_list")
@@ -124,6 +133,7 @@ def borrower_deactivate(request, pk):
             f"Borrower '{borrower.full_name}' deactivated",
             request.user
         )
+        trigger_sheets_sync()
 
         messages.success(request, f"Borrower '{borrower.full_name}' deactivated.")
         return redirect("borrowers:borrower_list")
@@ -144,6 +154,7 @@ def borrower_reactivate(request, pk):
             f"Borrower '{borrower.full_name}' reactivated",
             request.user
         )
+        trigger_sheets_sync()
 
         messages.success(request, f"Borrower '{borrower.full_name}' reactivated.")
         return redirect("borrowers:borrower_list")

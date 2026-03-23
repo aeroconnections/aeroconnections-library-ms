@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.2.3] - 2026-03-23
+
+### Added
+- **Browser-Based Google Sheets OAuth** - No more manual file copying; authorize directly from browser
+- **Auto-Sync on Activity** - Data syncs automatically on book/borrower/loan changes
+- **First-Time Sync** - "Create Spreadsheet & Sync All Data" button for initial backup
+- **Google Sheets Settings Page** - Dedicated UI at `/settings/sheets/`
+
+### Changed
+- **Credentials Storage** - OAuth credentials stored in `/app/data/` for Docker volume persistence
+
 ## [1.2.2] - 2026-03-23
 
 ### Fixed
