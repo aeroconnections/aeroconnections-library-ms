@@ -39,7 +39,7 @@ def borrower_list(request):
             email__icontains=search_query
         )
 
-    return render(request, "borrowers/borrower_list.html", {"borrowers": borrowers})
+    return render(request, "borrowers/borrower_list.html", {"borrowers": borrowers, "status_filter": status_filter or "active"})
 
 
 @login_required
@@ -77,8 +77,8 @@ def borrower_create(request):
 @login_required
 def borrower_detail(request, pk):
     borrower = get_object_or_404(Borrower, pk=pk)
-    loans = Loan.objects.filter(borrower_name=borrower.full_name).select_related("book").order_by("-checkout_date")
-    return_notes = ReturnNote.objects.filter(borrower_name=borrower.full_name).select_related("book").order_by("-created_at")
+    loans = Loan.objects.filter(borrower_name=borrower.full_name).select_related("book_copy", "created_by").order_by("-checkout_date")
+    return_notes = ReturnNote.objects.filter(borrower_name=borrower.full_name).select_related("book_copy", "created_by").order_by("-created_at")
     return render(request, "borrowers/borrower_detail.html", {
         "borrower": borrower,
         "loans": loans,

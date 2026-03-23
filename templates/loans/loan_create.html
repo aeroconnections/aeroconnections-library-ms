@@ -35,9 +35,21 @@
             {% endif %}
         </div>
         
+        <div class="mb-4">
+            <label class="block text-sm font-medium text-dark-grey mb-2">Checkout Date *</label>
+            <input type="date" name="checkout_date" id="checkout_date" value="{{ today }}" max="{{ today }}" class="w-full border border-light-grey rounded-lg px-4 py-2 focus:outline-none focus:border-primary">
+            <p class="text-xs text-dark-grey mt-1">Leave as today for new loans. Select a past date to add historical records.</p>
+        </div>
+        
+        <div class="mb-6" id="due_date_container" style="display: none;">
+            <label class="block text-sm font-medium text-dark-grey mb-2">Expected Return Date</label>
+            <input type="date" name="expected_return_date" id="expected_return_date" class="w-full border border-light-grey rounded-lg px-4 py-2 focus:outline-none focus:border-primary">
+            <p class="text-xs text-dark-grey mt-1">Leave blank to auto-calculate based on loan duration (30 days from checkout date).</p>
+        </div>
+        
         <div class="bg-light-grey/30 rounded-lg p-4 mb-6">
             <p class="text-sm text-dark-grey">
-                <strong>Note:</strong> Loan duration is 30 days. The due date will be automatically set.
+                <strong>Note:</strong> Loan duration is 30 days. The due date will be automatically set based on checkout date.
             </p>
         </div>
         
@@ -51,4 +63,24 @@
         </div>
     </form>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const checkoutDateInput = document.getElementById('checkout_date');
+    const dueDateContainer = document.getElementById('due_date_container');
+    const today = '{{ today }}';
+    
+    function checkCheckoutDate() {
+        const selectedDate = checkoutDateInput.value;
+        if (selectedDate && selectedDate !== today) {
+            dueDateContainer.style.display = 'block';
+        } else {
+            dueDateContainer.style.display = 'none';
+        }
+    }
+    
+    checkoutDateInput.addEventListener('change', checkCheckoutDate);
+    checkCheckoutDate();
+});
+</script>
 {% endblock %}

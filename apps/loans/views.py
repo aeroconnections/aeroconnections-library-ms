@@ -1,4 +1,4 @@
-from datetime import timedelta
+from datetime import date, timedelta
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -51,9 +51,13 @@ def loan_list(request):
 
 @login_required
 def loan_create(request):
+    today = timezone.now().date().isoformat()
+
     if request.method == "POST":
         copy_id = request.POST.get("copy")
         borrower_id = request.POST.get("borrower")
+        checkout_date_str = request.POST.get("checkout_date")
+        expected_return_str = request.POST.get("expected_return_date")
 
         book_copy = get_object_or_404(BookCopy, id=copy_id)
         borrower = get_object_or_404(Borrower, id=borrower_id)
@@ -66,8 +70,9 @@ def loan_create(request):
             messages.error(request, f"Copy {book_copy.copy_id} is not available.")
             return redirect("loans:loan_create")
 
-        checkout_date = timezone.now().date()
-        due_date = checkout_date + timedelta(days=Loan.LOAN_DURATION_DAYS)
+        checkout_date = date.fromisoformat(checkout_date_str) if checkout_date_str else timezone.now().date()
+
+        due_date = date.fromisoformat(expected_return_str) if expected_return_str else checkout_date + timedelta(days=Loan.LOAN_DURATION_DAYS)
 
         Loan.objects.create(
             book_copy=book_copy,
@@ -93,7 +98,7 @@ def loan_create(request):
 
     borrowers = Borrower.objects.filter(is_active=True)
     available_copies = BookCopy.objects.filter(status=BookCopy.Status.AVAILABLE).select_related("book")
-    return render(request, "loans/loan_create.html", {"copies": available_copies, "borrowers": borrowers})
+    return render(request, "loans/loan_create.html", {"copies": available_copies, "borrowers": borrowers, "today": today})
 
 
 @login_required

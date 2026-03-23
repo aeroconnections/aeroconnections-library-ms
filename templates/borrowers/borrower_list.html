@@ -7,30 +7,47 @@
 {% block content %}
 <!-- Search & Filters -->
 <div class="bg-white rounded-xl border border-light-grey p-4 mb-6">
-    <form method="get" class="flex flex-wrap gap-4 items-center">
-        <input type="text" name="q" placeholder="Search borrowers..." value="{{ request.GET.q }}" 
-               class="search-input w-64">
-        <select name="status" class="filter-select" onchange="this.form.submit()">
-            <option value="">All Status</option>
-            <option value="active" {% if request.GET.status == 'active' %}selected{% endif %}>Active</option>
-            <option value="inactive" {% if request.GET.status == 'inactive' %}selected{% endif %}>Inactive</option>
-        </select>
-        <select name="employment_type" class="filter-select" onchange="this.form.submit()">
-            <option value="">All Types</option>
-            <option value="permanent" {% if request.GET.employment_type == 'permanent' %}selected{% endif %}>Permanent</option>
-            <option value="intern" {% if request.GET.employment_type == 'intern' %}selected{% endif %}>Intern</option>
-            <option value="temporary" {% if request.GET.employment_type == 'temporary' %}selected{% endif %}>Temporary</option>
-        </select>
-        <button type="submit" class="bg-primary hover:bg-primary-dark text-white px-4 py-2 rounded-lg font-medium transition-colors">
-            Filter
-        </button>
-        {% if request.GET.q or request.GET.status or request.GET.employment_type %}
-        <a href="{% url 'borrowers:borrower_list' %}" class="text-dark-grey hover:text-primary px-4 py-2">Clear</a>
-        {% endif %}
-        <a href="{% url 'borrowers:borrower_import' %}" class="bg-success hover:bg-success-dark text-white px-4 py-2 rounded-lg font-medium transition-colors ml-auto">
+    <div class="flex flex-wrap gap-4 items-center justify-between mb-4">
+        <form method="get" class="flex flex-wrap gap-4 items-center" id="searchForm">
+            <input type="hidden" name="status" value="{{ status_filter }}" id="statusFilter">
+            <input type="text" name="q" placeholder="Search borrowers..." value="{{ request.GET.q }}" 
+                   class="search-input w-64">
+            <select name="employment_type" class="filter-select" onchange="this.form.submit()">
+                <option value="">All Types</option>
+                <option value="permanent" {% if request.GET.employment_type == 'permanent' %}selected{% endif %}>Permanent</option>
+                <option value="intern" {% if request.GET.employment_type == 'intern' %}selected{% endif %}>Intern</option>
+                <option value="temporary" {% if request.GET.employment_type == 'temporary' %}selected{% endif %}>Temporary</option>
+            </select>
+            <button type="submit" class="bg-primary hover:bg-primary-dark text-white px-4 py-2 rounded-lg font-medium transition-colors">
+                Filter
+            </button>
+            {% if request.GET.q or request.GET.employment_type %}
+            <a href="?status={{ status_filter }}" class="text-dark-grey hover:text-primary px-4 py-2">Clear</a>
+            {% endif %}
+        </form>
+        <a href="{% url 'borrowers:borrower_import' %}" class="bg-success hover:bg-success-dark text-white px-4 py-2 rounded-lg font-medium transition-colors">
             Import CSV
         </a>
-    </form>
+    </div>
+    
+    <!-- Status Tabs -->
+    <div class="flex border-b border-light-grey">
+        <a href="?status=active{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.employment_type %}&employment_type={{ request.GET.employment_type }}{% endif %}" 
+           class="px-4 py-2 font-medium transition-colors border-b-2 -mb-px
+                  {% if status_filter == 'active' %}border-primary text-primary{% else %}border-transparent text-dark-grey hover:text-primary{% endif %}">
+            Active
+        </a>
+        <a href="?status=all{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.employment_type %}&employment_type={{ request.GET.employment_type }}{% endif %}" 
+           class="px-4 py-2 font-medium transition-colors border-b-2 -mb-px
+                  {% if status_filter == 'all' %}border-primary text-primary{% else %}border-transparent text-dark-grey hover:text-primary{% endif %}">
+            All
+        </a>
+        <a href="?status=inactive{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.employment_type %}&employment_type={{ request.GET.employment_type }}{% endif %}" 
+           class="px-4 py-2 font-medium transition-colors border-b-2 -mb-px
+                  {% if status_filter == 'inactive' %}border-primary text-primary{% else %}border-transparent text-dark-grey hover:text-primary{% endif %}">
+            Inactive
+        </a>
+    </div>
 </div>
 
 <div class="bg-white rounded-xl border border-light-grey overflow-hidden">
@@ -47,9 +64,9 @@
         </thead>
         <tbody class="bg-white divide-y divide-light-grey">
             {% for borrower in borrowers %}
-            <tr class="{% if not borrower.is_active %}bg-light-grey/20{% endif %}">
+            <tr class="{% if not borrower.is_active %}bg-light-grey/20 opacity-60{% endif %}">
                 <td class="px-6 py-4">
-                    <div class="font-medium text-gray-900">{{ borrower.full_name }}</div>
+                    <div class="font-medium text-gray-900{% if not borrower.is_active %} line-through{% endif %}">{{ borrower.full_name }}</div>
                 </td>
                 <td class="px-6 py-4 text-dark-grey">{{ borrower.email }}</td>
                 <td class="px-6 py-4 text-dark-grey">{{ borrower.phone }}</td>
