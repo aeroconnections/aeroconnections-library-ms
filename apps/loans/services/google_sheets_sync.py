@@ -97,7 +97,7 @@ class GoogleSheetsSync:
             flow = InstalledAppFlow.from_client_secrets_file(credentials_path, self.SCOPES)
             flow.redirect_uri = redirect_uri
             auth_url, state = flow.authorization_url(
-                prompt="consent", 
+                prompt="consent",
                 access_type="offline",
                 include_granted_scopes="true"
             )
