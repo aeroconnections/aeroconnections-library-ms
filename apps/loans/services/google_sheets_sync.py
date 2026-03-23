@@ -87,18 +87,25 @@ class GoogleSheetsSync:
 
     def get_auth_url(self, redirect_uri):
         if not GOOGLE_SHEETS_AVAILABLE:
-            return None, "Google API client not installed"
+            return None, "Google API client not installed", None
 
         credentials_path = self._get_credentials_path()
         if not os.path.exists(credentials_path):
             return None, f"Credentials file not found: {credentials_path}"
 
-        flow = InstalledAppFlow.from_client_secrets_file(credentials_path, self.SCOPES)
-        flow.redirect_uri = redirect_uri
-        auth_url, _ = flow.authorization_url(prompt="consent", access_type="offline")
-        return auth_url, None
+        try:
+            flow = InstalledAppFlow.from_client_secrets_file(credentials_path, self.SCOPES)
+            flow.redirect_uri = redirect_uri
+            auth_url, state = flow.authorization_url(
+                prompt="consent", 
+                access_type="offline",
+                include_granted_scopes="true"
+            )
+            return auth_url, None, state
+        except Exception as e:
+            return None, str(e), None
 
-    def handle_callback(self, code, redirect_uri):
+    def handle_callback(self, authorization_response_url):
         if not GOOGLE_SHEETS_AVAILABLE:
             return False, "Google API client not installed"
 
@@ -108,8 +115,7 @@ class GoogleSheetsSync:
 
         try:
             flow = InstalledAppFlow.from_client_secrets_file(credentials_path, self.SCOPES)
-            flow.redirect_uri = redirect_uri
-            self.credentials = flow.fetch_token(code=code)
+            self.credentials = flow.fetch_token(authorization_response=authorization_response_url)
 
             self._ensure_data_dir()
             token_path = self._get_token_path()

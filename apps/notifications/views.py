@@ -29,31 +29,38 @@ def sheets_setup(request):
 def sheets_auth(request):
     redirect_uri = request.build_absolute_uri(reverse("notifications:sheets_callback"))
     sync = GoogleSheetsSync()
-    auth_url, error = sync.get_auth_url(redirect_uri)
+    auth_url, error, state = sync.get_auth_url(redirect_uri)
 
     if error:
         messages.error(request, error)
         return redirect("notifications:sheets_setup")
+
+    request.session["oauth_state"] = state
+    request.session["oauth_redirect_uri"] = redirect_uri
 
     return redirect(auth_url)
 
 
 @login_required
 def sheets_callback(request):
-    code = request.GET.get("code")
     error = request.GET.get("error")
-
     if error:
         messages.error(request, f"Google OAuth error: {error}")
         return redirect("notifications:sheets_setup")
 
-    if not code:
-        messages.error(request, "No authorization code received")
+    received_state = request.GET.get("state")
+    stored_state = request.session.pop("oauth_state", None)
+
+    if stored_state and stored_state != received_state:
+        messages.error(request, "Invalid OAuth state. Please try again.")
         return redirect("notifications:sheets_setup")
 
-    redirect_uri = request.build_absolute_uri(reverse("notifications:sheets_callback"))
+    authorization_response = request.build_absolute_uri(request.get_full_path())
+
     sync = GoogleSheetsSync()
-    success, message = sync.handle_callback(code, redirect_uri)
+    success, message = sync.handle_callback(authorization_response)
+
+    request.session.pop("oauth_redirect_uri", None)
 
     if success:
         messages.success(request, "Successfully connected to Google Sheets!")
