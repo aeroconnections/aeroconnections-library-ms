@@ -21,7 +21,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-RUN python manage.py migrate
+RUN mkdir -p /app/data && python manage.py migrate
 
 RUN python manage.py collectstatic --noinput || true
 

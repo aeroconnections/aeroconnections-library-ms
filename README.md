@@ -21,6 +21,18 @@ A free and open-source library management system built with Django.
 - **Modern UI** — Responsive design with AeroConnections branding
 - **Multi-platform** — Supports AMD64 and ARM64 architectures
 - **Setup Wizard** — Easy first-time configuration with PIN protection
+- **CSV Import** — Bulk import books and borrowers via CSV files
+- **Book Autocomplete** — Auto-fill author and ISBN when adding new books
+
+## New in v1.2.0
+
+### CSV Import
+Bulk import books and borrowers via CSV files with preview and duplicate detection. Access via:
+- `/books/import/` - Import books
+- `/borrowers/import/` - Import borrowers
+
+### Book Search Autocomplete
+When adding new books, search existing inventory to auto-fill author and ISBN fields.
 
 ## First-Time Setup
 
@@ -68,17 +80,19 @@ To access the setup page after initial configuration:
 
 ### Docker (Recommended)
 
-```bash
-# Pull and run
-docker run -d -p 8000:8000 \
-  -e SECRET_KEY=your-secret-key \
-  -e DATABASE_URL=sqlite:///db.sqlite3 \
-  -e ALLOWED_HOSTS="*" \
-  -e CSRF_TRUSTED_ORIGINS="https://your-domain.com,http://localhost:8000" \
-  --name library-ms \
-  sachinaeroconnections/library-ms:latest
+Data is persisted at `/app/data/` inside the container. Mount a volume to preserve all data:
 
-# Or using docker-compose
+```bash
+docker run -d \
+  --name library-ms \
+  -p 8000:8000 \
+  -v library-data:/app/data \
+  sachinaeroconnections/library-ms:latest
+```
+
+For docker-compose, the volume is configured automatically:
+
+```bash
 curl -O https://raw.githubusercontent.com/aeroconnections/library-ms/main/docker-compose.yml
 docker-compose up -d
 ```
@@ -204,9 +218,20 @@ print('Setup configuration deleted. Access /setup/ to reconfigure.')
 
 | Command | Description |
 |---------|-------------|
+| `clear_all_data` | Clear all data from database (requires confirmation) |
 | `populate_test_data` | Add sample books, borrowers, and loans |
 | `remove_test_data` | Remove all test data (with confirmation) |
 | `sync_to_sheets` | Sync data to Google Sheets for backup |
+
+### Clear All Data
+
+To reset the database completely:
+
+```bash
+docker exec -it library-ms python manage.py clear_all_data
+```
+
+Type `yes` when prompted to confirm deletion of all data.
 
 ## Tech Stack
 
