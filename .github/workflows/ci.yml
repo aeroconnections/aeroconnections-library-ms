@@ -58,7 +58,9 @@ jobs:
           echo "DEBUG=False" >> $GITHUB_ENV
 
       - name: Run migrations
-        run: python manage.py migrate --skip-checks
+        run: |
+          mkdir -p data
+          python manage.py migrate --skip-checks
 
       - name: Run Django check
         run: python manage.py check
