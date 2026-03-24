@@ -117,8 +117,44 @@ Then access `/setup/` to configure your library.
 
 For NFS/SMB mounts, enter the mount path and credentials:
 
-- **Mount Path**: e.g., `/mnt/backup` (NFS) or `//server/share` (SMB)
-- **SMB Credentials**: Server, username, password, domain (if required)
+- **Mount Path**: e.g., `/mnt/backups`
+- **SMB Server**: e.g., `//netstorage.local/library-backups`
+- **SMB Credentials**: Username, password, domain (if required)
+
+### SMB/CIFS Backup Setup
+
+#### 1. Container Volume Mount
+
+Mount the SMB share to the container:
+
+```bash
+docker run -d \
+  --name library-ms \
+  -p 8000:8000 \
+  -v /path/to/mounted/smb/share:/mnt/backups \
+  -v library-data:/app/data \
+  sachinaeroconnections/library-ms:latest
+```
+
+#### 2. Configure in App Settings
+
+| Field | Value |
+|-------|-------|
+| Mount Type | `smb` |
+| Mount Path | `/mnt/backups` |
+| SMB Server | `//netstorage.local` |
+| SMB Username | Your SMB username |
+| SMB Password | Your SMB password |
+| SMB Domain | WORKGROUP (or your domain) |
+
+#### 3. Dockhand Configuration
+
+Add the volume mount to your Dockhand configuration:
+
+```yaml
+volumes:
+  - /path/to/mounted/smb/share:/mnt/backups
+```
 
 ### Backup Storage
 

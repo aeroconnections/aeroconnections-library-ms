@@ -52,7 +52,13 @@ class BackupService:
 
             path = Path(mount_path)
             if not path.exists():
-                return False, f"Mount path not accessible: {mount_path}"
+                if settings_obj.backup_mount_type == 'smb':
+                    mounted = self._mount_smb(settings_obj)
+                    if not mounted:
+                        return False, f"Mount path not accessible and SMB mount failed: {mount_path}"
+                    path = Path(mount_path)
+                else:
+                    return False, f"Mount path not accessible: {mount_path}"
 
             try:
                 test_file = path / ".write_test"
@@ -63,6 +69,41 @@ class BackupService:
                 return False, f"Cannot write to mount: {e}"
 
         return True, None
+
+    def _mount_smb(self, settings_obj):
+        try:
+            import subprocess
+
+            mount_path = settings_obj.backup_mount_path
+            smb_server = settings_obj.smb_server or f"//{settings_obj.smb_server}"
+            smb_username = settings_obj.smb_username
+            smb_password = settings_obj.smb_password
+            smb_domain = settings_obj.smb_domain
+
+            if not smb_server or not smb_username:
+                return False
+
+            Path(mount_path).parent.mkdir(parents=True, exist_ok=True)
+
+            mount_options = ["rw", "vers=3.0"]
+            if smb_username:
+                mount_options.append(f"username={smb_username}")
+            if smb_password:
+                mount_options.append(f"password={smb_password}")
+            if smb_domain:
+                mount_options.append(f"domain={smb_domain}")
+
+            cmd = [
+                "mount", "-t", "cifs",
+                smb_server,
+                mount_path,
+                "-o", ",".join(mount_options)
+            ]
+
+            result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
+            return result.returncode == 0
+        except Exception:
+            return False
 
     def create_backup(self):
         timestamp = timezone.now().strftime("%Y-%m-%d_%H%M%S")
