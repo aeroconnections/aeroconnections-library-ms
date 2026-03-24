@@ -132,7 +132,68 @@ Why this approach:
 - Host mount is more stable and easier to debug.
 - Backup path validation can verify write access directly.
 
-#### 1. Container Volume Mount
+#### 1. Mount SMB on the host
+
+Install CIFS tools:
+
+```bash
+sudo apt update && sudo apt install -y cifs-utils
+```
+
+Create credentials file:
+
+```bash
+sudo mkdir -p /etc/smb-credentials
+sudo nano /etc/smb-credentials/library-backups.cred
+```
+
+Credentials file content:
+
+```ini
+username=YOUR_SMB_USERNAME
+password=YOUR_SMB_PASSWORD
+domain=WORKGROUP
+```
+
+Secure the file:
+
+```bash
+sudo chmod 600 /etc/smb-credentials/library-backups.cred
+```
+
+Create mount point and mount share:
+
+```bash
+sudo mkdir -p /mnt/Storage/Files/library-backups
+sudo mount -t cifs //10.255.253.52/library-backups /mnt/Storage/Files/library-backups \
+  -o credentials=/etc/smb-credentials/library-backups.cred,iocharset=utf8,uid=0,gid=0,file_mode=0644,dir_mode=0755,vers=3.0
+```
+
+Verify mount:
+
+```bash
+findmnt /mnt/Storage/Files/library-backups
+df -hT /mnt/Storage/Files/library-backups
+```
+
+You should see filesystem type `cifs`.
+
+#### 2. Make mount persistent across reboot
+
+Add this line to `/etc/fstab`:
+
+```fstab
+//10.255.253.52/library-backups /mnt/Storage/Files/library-backups cifs credentials=/etc/smb-credentials/library-backups.cred,iocharset=utf8,uid=0,gid=0,file_mode=0644,dir_mode=0755,vers=3.0,_netdev,nofail,x-systemd.automount 0 0
+```
+
+Then test:
+
+```bash
+sudo mount -a
+findmnt /mnt/Storage/Files/library-backups
+```
+
+#### 3. Container Volume Mount
 
 Mount the SMB share to the container:
 
@@ -145,7 +206,7 @@ docker run -d \
   sachinaeroconnections/library-ms:latest
 ```
 
-#### 2. Configure in App Settings
+#### 4. Configure in App Settings
 
 | Field | Value |
 |-------|-------|
@@ -158,7 +219,7 @@ docker run -d \
 
 Use the **Validate SMB/NFS** button in Settings before running backup.
 
-#### 3. Dockhand Configuration
+#### 5. Dockhand Configuration
 
 Add the volume mount to your Dockhand configuration:
 

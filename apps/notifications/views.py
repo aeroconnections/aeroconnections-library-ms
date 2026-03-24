@@ -55,12 +55,13 @@ def backup_list(request):
     from .services import BackupService
 
     backup_service = BackupService()
-    backups = backup_service.list_backups()
+    backups, diagnostics = backup_service.list_backups_with_diagnostics()
     last_backup = backup_service.get_last_backup_info()
 
     return render(request, "notifications/backup_list.html", {
         "backups": backups,
         "last_backup": last_backup,
+        "backup_diagnostics": diagnostics,
     })
 
 

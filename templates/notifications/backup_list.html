@@ -6,6 +6,23 @@
 
 {% block content %}
 <div class="max-w-4xl mx-auto">
+
+    {% if backup_diagnostics %}
+    <div class="bg-info-light rounded-xl border border-info/20 p-4 mb-6">
+        <p class="text-sm text-info-dark">
+            Backup path: <code>{{ backup_diagnostics.backup_dir }}</code>
+            | Found: {{ backup_diagnostics.discovered }}
+            | Displayed: {{ backup_diagnostics.displayed }}
+        </p>
+    </div>
+    {% endif %}
+
+    {% if backup_diagnostics.skipped %}
+    <div class="bg-warning-light rounded-xl border border-warning/20 p-4 mb-6">
+        <p class="text-sm text-warning-dark font-medium">Some backup files were skipped while reading metadata.</p>
+        <p class="text-xs text-warning mt-1">Open logs for file-level details.</p>
+    </div>
+    {% endif %}
     
     {% if last_backup %}
     <div class="bg-success-light rounded-xl border border-success/20 p-4 mb-6">

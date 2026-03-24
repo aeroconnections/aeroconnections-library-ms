@@ -4,6 +4,19 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.3.2] - 2026-03-24
+
+### Added
+- **Backup Listing Diagnostics** - Backup page now shows resolved backup path and discovered/displayed file counts for easier troubleshooting.
+
+### Changed
+- **SMB Docs** - Clarified host-mount-first approach for container deployments and added explicit validation guidance.
+
+### Fixed
+- **Backup UI Listing** - Fixed backup listing logic so valid files on SMB/local storage are displayed consistently.
+- **Timezone Handling** - Replaced fragile UTC conversion in backup listing and retention cleanup with safe timezone-aware handling.
+- **Metadata Read Resilience** - Backup files now remain visible even when adjacent metadata parsing fails.
+
 ## [1.3.1] - 2026-03-24
 
 ### Added

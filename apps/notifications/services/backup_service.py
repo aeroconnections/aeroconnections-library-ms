@@ -3,7 +3,7 @@ import os
 import shutil
 import subprocess
 import tarfile
-from datetime import datetime
+from datetime import datetime, timezone as dt_timezone
 from pathlib import Path
 
 from django.conf import settings
@@ -116,7 +116,6 @@ class BackupService:
             "/run/secrets/smb-credentials",
             "/run/secrets/smb_credentials",
             str(Path(settings.BASE_DIR) / "secrets" / "smb-credentials.env"),
-            str(Path(settings.BASE_DIR) / "secrets" / "smb-credentials.env.example"),
         ]
 
         creds = {}
@@ -279,7 +278,7 @@ class BackupService:
         deleted = []
         for backup_file in backup_dir.glob("library_backup_*.tar.gz"):
             try:
-                mtime = datetime.fromtimestamp(backup_file.stat().st_mtime, tz=timezone.utc)
+                mtime = datetime.fromtimestamp(backup_file.stat().st_mtime, tz=dt_timezone.utc)
                 if mtime < cutoff:
                     backup_file.unlink()
                     metadata_file = backup_file.with_suffix(".json")
@@ -287,32 +286,64 @@ class BackupService:
                         metadata_file.unlink()
                     deleted.append(backup_file.name)
             except Exception:
-                pass
+                continue
 
         return deleted
 
-    def list_backups(self):
+    def list_backups_with_diagnostics(self):
         backup_dir = self.get_backup_dir()
         backups = []
+        skipped = []
 
-        for backup_file in sorted(backup_dir.glob("library_backup_*.tar.gz"), reverse=True):
+        if not backup_dir.exists():
+            return backups, {
+                "backup_dir": str(backup_dir),
+                "discovered": 0,
+                "displayed": 0,
+                "skipped": [],
+            }
+
+        discovered_files = sorted(backup_dir.glob("library_backup_*.tar.gz"), reverse=True)
+
+        for backup_file in discovered_files:
             try:
                 metadata = None
                 metadata_file = backup_file.with_suffix(".json")
                 if metadata_file.exists():
-                    with open(metadata_file) as f:
-                        metadata = json.load(f)
+                    try:
+                        with open(metadata_file) as f:
+                            metadata = json.load(f)
+                    except Exception as e:
+                        skipped.append({
+                            "name": metadata_file.name,
+                            "error": f"metadata parse failed: {e}",
+                        })
 
                 backups.append({
                     "name": backup_file.name,
                     "path": str(backup_file),
                     "size_bytes": backup_file.stat().st_size,
-                    "created": datetime.fromtimestamp(backup_file.stat().st_mtime, tz=timezone.utc),
+                    "created": datetime.fromtimestamp(backup_file.stat().st_mtime, tz=dt_timezone.utc),
                     "metadata": metadata,
                 })
-            except Exception:
-                pass
+            except Exception as e:
+                skipped.append({
+                    "name": backup_file.name,
+                    "error": str(e),
+                })
+                continue
 
+        diagnostics = {
+            "backup_dir": str(backup_dir),
+            "discovered": len(discovered_files),
+            "displayed": len(backups),
+            "skipped": skipped,
+        }
+
+        return backups, diagnostics
+
+    def list_backups(self):
+        backups, _ = self.list_backups_with_diagnostics()
         return backups
 
     def get_last_backup_info(self):
