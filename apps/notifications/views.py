@@ -50,7 +50,7 @@ def settings(request):
 @login_required
 @user_passes_test(is_superadmin)
 def backup_list(request):
-    from .services.backup import BackupService
+    from .services import BackupService
 
     backup_service = BackupService()
     backups = backup_service.list_backups()
@@ -65,8 +65,7 @@ def backup_list(request):
 @login_required
 @user_passes_test(is_superadmin)
 def backup_run(request):
-    from .services import SystemAlertService
-    from .services.backup import BackupService
+    from .services import BackupService, SystemAlertService
 
     if request.method == "POST":
         backup_service = BackupService()
