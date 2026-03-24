@@ -49,7 +49,7 @@ def daily_overdue_check():
 @shared_task
 def daily_database_backup():
     from .models import LibrarySettings
-    from .services.backup import BackupService
+    from .services import BackupService
 
     settings_obj = LibrarySettings.get_active()
     if not settings_obj or not settings_obj.backup_enabled:

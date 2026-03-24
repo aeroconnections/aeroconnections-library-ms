@@ -123,6 +123,15 @@ For NFS/SMB mounts, enter the mount path and credentials:
 
 ### SMB/CIFS Backup Setup
 
+#### Recommended Approach (Dockhand/containers)
+
+Use a **host-mounted SMB share** and bind it into the container. This is the default and recommended approach because most container platforms do not allow in-container `mount -t cifs` without privileged capabilities.
+
+Why this approach:
+- Containerized environments often block `CAP_SYS_ADMIN` required for CIFS mounts.
+- Host mount is more stable and easier to debug.
+- Backup path validation can verify write access directly.
+
 #### 1. Container Volume Mount
 
 Mount the SMB share to the container:
@@ -147,6 +156,8 @@ docker run -d \
 | SMB Password | Your SMB password |
 | SMB Domain | WORKGROUP (or your domain) |
 
+Use the **Validate SMB/NFS** button in Settings before running backup.
+
 #### 3. Dockhand Configuration
 
 Add the volume mount to your Dockhand configuration:
@@ -155,6 +166,16 @@ Add the volume mount to your Dockhand configuration:
 volumes:
   - /path/to/mounted/smb/share:/mnt/backups
 ```
+
+#### Optional: In-container SMB mount
+
+Only use this if your runtime explicitly supports privileged mount capabilities. Set:
+
+```bash
+ALLOW_IN_CONTAINER_SMB_MOUNT=true
+```
+
+If not enabled, the app will show guidance to use host-mounted SMB paths.
 
 ### Backup Storage
 

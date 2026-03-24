@@ -68,7 +68,7 @@
                     <input type="text" name="backup_mount_path" value="{{ settings_obj.backup_mount_path|default:'' }}" 
                            placeholder="/mnt/backup or //server/share"
                            class="w-full px-4 py-2 border border-light-grey rounded-lg focus:ring-2 focus:ring-primary focus:border-primary">
-                    <p class="text-xs text-grey mt-1">Required for NFS and SMB mounts</p>
+                    <p class="text-xs text-grey mt-1">Required for NFS and SMB mounts. For SMB in Dockhand, use a container path like /mnt/backups.</p>
                 </div>
                 
                 <div id="smb_fields" class="hidden">
@@ -93,8 +93,9 @@
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-dark-grey mb-1">Password</label>
-                            <input type="password" name="smb_password" value="{{ settings_obj.smb_password|default:'' }}" 
+                            <input type="password" name="smb_password" value="" 
                                    class="w-full px-4 py-2 border border-light-grey rounded-lg focus:ring-2 focus:ring-primary focus:border-primary">
+                            <p class="text-xs text-grey mt-1">Leave blank to keep current password or use secrets file.</p>
                         </div>
                     </div>
                 </div>
@@ -118,6 +119,7 @@
     <!-- Backup Actions -->
     <div class="bg-white rounded-xl border border-light-grey p-6 mb-6">
         <h3 class="text-lg font-semibold text-dark-grey mb-4">Backup Actions</h3>
+        <p class="text-sm text-grey mb-4">SMB in containers usually cannot mount without elevated privileges. Recommended approach: mount SMB on host, then bind to container path (e.g. /mnt/backups).</p>
         
         <div class="flex items-center gap-4">
             <a href="{% url 'notifications:backup_list' %}" class="bg-info hover:bg-info-dark text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2">
@@ -134,6 +136,16 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
                     </svg>
                     Backup Now
+                </button>
+            </form>
+
+            <form method="post" action="{% url 'notifications:backup_validate' %}" class="inline">
+                {% csrf_token %}
+                <button type="submit" class="bg-primary hover:bg-primary-dark text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    Validate SMB/NFS
                 </button>
             </form>
         </div>

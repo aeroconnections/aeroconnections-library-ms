@@ -4,6 +4,20 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.3.1] - 2026-03-24
+
+### Added
+- **Backup Storage Validation** - New `Validate SMB/NFS` action in Settings to verify mount reachability and write access before backup.
+
+### Changed
+- **SMB Strategy (Containers)** - Default behavior now prefers host-mounted SMB shares bound into the container path, with explicit guidance for Dockhand deployments.
+- **SMB Password Handling** - Password field no longer pre-fills in UI; blank submissions keep existing stored password.
+
+### Fixed
+- **Backup Temp Directory** - Temporary backup workspace now uses `/tmp/library-backups` with parent directory creation to avoid missing-path errors.
+- **Backup Download Import** - Corrected service import path used by backup download endpoint.
+- **SMB Mount Errors** - Clearer error messaging when in-container CIFS mount is blocked due to missing privileged capabilities.
+
 ## [1.3.0] - 2026-03-24
 
 ### Removed

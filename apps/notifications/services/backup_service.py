@@ -13,6 +13,7 @@ from django.utils import timezone
 class BackupService:
     def __init__(self):
         self.backup_dir = Path(settings.BASE_DIR) / "data" / "backups"
+        self.temp_root = Path("/tmp") / "library-backups"
         self.db_path = settings.DATABASES["default"]["NAME"]
         self.media_path = settings.MEDIA_ROOT
 
@@ -80,6 +81,13 @@ class BackupService:
             if settings_obj.backup_mount_type == 'smb':
                 path.mkdir(parents=True, exist_ok=True)
                 if not os.path.ismount(path):
+                    if not self._allow_in_container_mount():
+                        return False, (
+                            "SMB path is not mounted in container. "
+                            "In Dockhand, mount SMB on host and bind it to this container path "
+                            f"({path}). Set ALLOW_IN_CONTAINER_SMB_MOUNT=true only if privileged mounts are enabled."
+                        )
+
                     mounted, mount_error = self._mount_smb(settings_obj, str(path), remote_hint)
                     if not mounted:
                         return False, f"SMB mount failed for {settings_obj.smb_server or remote_hint or mount_path}: {mount_error}"
@@ -97,6 +105,10 @@ class BackupService:
                 return False, f"Cannot write to mount: {e}"
 
         return True, None
+
+    @staticmethod
+    def _allow_in_container_mount():
+        return os.environ.get("ALLOW_IN_CONTAINER_SMB_MOUNT", "false").lower() == "true"
 
     def _load_smb_credentials_from_secret(self):
         secret_candidates = [
@@ -213,8 +225,9 @@ class BackupService:
             return {"success": False, "error": f"Cannot create backup directory: {e}"}
 
         backup_path = backup_dir / backup_name
-        temp_dir = self.backup_dir / f"temp_{timestamp}"
-        temp_dir.mkdir(exist_ok=True)
+        self.temp_root.mkdir(parents=True, exist_ok=True)
+        temp_dir = self.temp_root / f"temp_{timestamp}"
+        temp_dir.mkdir(parents=True, exist_ok=True)
 
         try:
             if os.path.exists(self.db_path):

@@ -27,7 +27,9 @@ def settings(request):
             settings_obj.backup_mount_options = request.POST.get("backup_mount_options", "")
             settings_obj.smb_server = request.POST.get("smb_server", "")
             settings_obj.smb_username = request.POST.get("smb_username", "")
-            settings_obj.smb_password = request.POST.get("smb_password", "")
+            smb_password = request.POST.get("smb_password", "")
+            if smb_password:
+                settings_obj.smb_password = smb_password
             settings_obj.smb_domain = request.POST.get("smb_domain", "")
             settings_obj.save()
             messages.success(request, "Backup settings updated successfully.")
@@ -97,8 +99,24 @@ def backup_run(request):
 
 @login_required
 @user_passes_test(is_superadmin)
+def backup_validate(request):
+    from .services import BackupService
+
+    if request.method == "POST":
+        backup_service = BackupService()
+        valid, error = backup_service.validate_mount()
+        if valid:
+            messages.success(request, "Backup storage validation successful. SMB/NFS path is reachable and writable.")
+        else:
+            messages.error(request, f"Backup validation failed: {error}")
+
+    return redirect("notifications:settings")
+
+
+@login_required
+@user_passes_test(is_superadmin)
 def backup_download(request, filename):
-    from .services.backup import BackupService
+    from .services import BackupService
 
     if not filename.startswith("library_backup_") or not filename.endswith(".tar.gz"):
         raise Http404("Invalid filename")
