@@ -33,7 +33,7 @@ After starting the application, navigate to:
 http://localhost:8000/setup/
 ```
 
-You will be prompted to enter a Setup PIN. Since this is your first time, you can proceed to the setup wizard directly.
+You will be prompted to enter a Setup PIN. If this is your first time, you can proceed to the setup wizard directly.
 
 ### 2. Configure Your Library
 
