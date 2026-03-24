@@ -51,10 +51,65 @@ class LibrarySettings(models.Model):
         blank=True,
         help_text="Secret key for webhook authentication"
     )
-    google_sheets_id = models.CharField(
+    backup_enabled = models.BooleanField(
+        default=False,
+        help_text="Enable automatic daily backups"
+    )
+    backup_hour = models.PositiveIntegerField(
+        default=2,
+        help_text="Hour of day for backup (0-23)"
+    )
+    backup_retention_days = models.PositiveIntegerField(
+        default=14,
+        help_text="Number of days to keep backups"
+    )
+    backup_mount_type = models.CharField(
+        max_length=10,
+        choices=[
+            ('local', 'Local'),
+            ('nfs', 'NFS'),
+            ('smb', 'SMB/CIFS'),
+        ],
+        default='local'
+    )
+    backup_mount_path = models.CharField(
+        max_length=500,
+        blank=True,
+        help_text="Mount path for NFS or SMB (e.g., /mnt/backup or //server/share)"
+    )
+    backup_mount_options = models.CharField(
+        max_length=500,
+        blank=True,
+        help_text="Mount options (optional)"
+    )
+    smb_server = models.CharField(
         max_length=255,
         blank=True,
-        help_text="Google Sheets ID for data backup (found in spreadsheet URL)"
+        help_text="SMB server address (e.g., //server/library-backups)"
+    )
+    smb_username = models.CharField(
+        max_length=100,
+        blank=True,
+        help_text="SMB username"
+    )
+    smb_password = models.CharField(
+        max_length=100,
+        blank=True,
+        help_text="SMB password"
+    )
+    smb_domain = models.CharField(
+        max_length=100,
+        blank=True,
+        help_text="SMB domain (optional)"
+    )
+    system_alert_webhook_url = models.URLField(
+        max_length=500,
+        blank=True,
+        help_text="Webhook URL for system alerts (separate from notifications)"
+    )
+    system_alert_enabled = models.BooleanField(
+        default=False,
+        help_text="Enable system alert notifications"
     )
     email_notifications_enabled = models.BooleanField(
         default=False,

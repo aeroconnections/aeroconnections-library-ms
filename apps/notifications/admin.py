@@ -5,8 +5,8 @@ from .models import Branding, LibrarySettings
 
 @admin.register(LibrarySettings)
 class LibrarySettingsAdmin(admin.ModelAdmin):
-    list_display = ['__str__', 'loan_duration_days', 'due_soon_threshold', 'is_active', 'updated_at']
-    list_filter = ['is_active']
+    list_display = ['__str__', 'loan_duration_days', 'due_soon_threshold', 'backup_enabled', 'is_active', 'updated_at']
+    list_filter = ['is_active', 'backup_enabled']
 
     fieldsets = (
         ('Loan Settings', {
@@ -15,13 +15,21 @@ class LibrarySettingsAdmin(admin.ModelAdmin):
         ('Notifications', {
             'fields': ('notify_on_checkout', 'notify_on_return', 'notify_on_overdue', 'overdue_reminder_days')
         }),
-        ('Webhook', {
+        ('Notification Webhook', {
             'fields': ('webhook_url', 'webhook_secret'),
             'description': 'Configure webhook URL for external notifications (Slack, Discord, custom)'
         }),
-        ('Google Sheets Backup', {
-            'fields': ('google_sheets_id',),
-            'description': 'Enter Google Sheets ID from the spreadsheet URL for data backup'
+        ('Backup Settings', {
+            'fields': ('backup_enabled', 'backup_hour', 'backup_retention_days', 'backup_mount_type', 'backup_mount_path', 'backup_mount_options'),
+            'classes': ('collapse',),
+        }),
+        ('SMB Settings', {
+            'fields': ('smb_server', 'smb_username', 'smb_password', 'smb_domain'),
+            'classes': ('collapse',),
+        }),
+        ('System Alerts', {
+            'fields': ('system_alert_enabled', 'system_alert_webhook_url'),
+            'description': 'System alerts for backup status and errors (separate from notification webhook)'
         }),
         ('Email Settings', {
             'fields': ('email_notifications_enabled', 'email_host', 'email_port', 'email_username', 'email_password', 'email_from_address', 'email_use_tls'),

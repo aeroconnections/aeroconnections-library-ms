@@ -1,168 +1,117 @@
+import os
 from django.contrib import messages
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, user_passes_test
+from django.http import FileResponse, Http404
 from django.shortcuts import redirect, render
-from django.urls import reverse
+from django.utils import timezone
 
-from apps.loans.services.google_sheets_sync import GoogleSheetsSync
+from .models import LibrarySettings
 
 
-@login_required
-def sheets_setup(request):
-    sync = GoogleSheetsSync()
-    is_authenticated = sync.is_authenticated()
-    is_connected = sync.is_connected()
-    spreadsheet_url = sync.get_spreadsheet_url()
-
-    context = {
-        "is_available": sync.is_available(),
-        "is_configured": sync.is_configured(),
-        "is_authenticated": is_authenticated,
-        "is_connected": is_connected,
-        "spreadsheet_id": sync.spreadsheet_id,
-        "spreadsheet_url": spreadsheet_url,
-    }
-
-    return render(request, "notifications/sheets_setup.html", context)
+def is_superadmin(user):
+    return user.is_superuser
 
 
 @login_required
-def sheets_auth(request):
-    redirect_uri = request.build_absolute_uri(reverse("notifications:sheets_callback"))
-    sync = GoogleSheetsSync()
-    auth_url, error, flow_json = sync.create_flow(redirect_uri)
-
-    if error:
-        messages.error(request, error)
-        return redirect("notifications:sheets_setup")
-
-    request.session["oauth_flow_json"] = flow_json
-
-    return redirect(auth_url)
-
-
-@login_required
-def sheets_callback(request):
-    error = request.GET.get("error")
-    if error:
-        messages.error(request, f"Google OAuth error: {error}")
-        return redirect("notifications:sheets_setup")
-
-    authorization_response = request.build_absolute_uri(request.get_full_path())
-    flow_json = request.session.pop("oauth_flow_json", None)
-
-    if not flow_json:
-        messages.error(request, "OAuth session expired. Please try again.")
-        return redirect("notifications:sheets_setup")
-
-    sync = GoogleSheetsSync()
-    success, message = sync.handle_callback_flow(authorization_response, flow_json)
-
-    if success:
-        messages.success(request, "Successfully connected to Google Sheets!")
-    else:
-        messages.error(request, f"Authentication failed: {message}")
-
-    return redirect("notifications:sheets_setup")
-
-
-@login_required
-def sheets_auth_console(request):
-    redirect_uri = request.build_absolute_uri(reverse("notifications:sheets_callback_console"))
-    sync = GoogleSheetsSync()
-    auth_url, error, flow_json = sync.create_flow(redirect_uri)
-
-    if error:
-        messages.error(request, error)
-        return redirect("notifications:sheets_setup")
-
-    request.session["oauth_console_flow_json"] = flow_json
-
-    context = {"auth_url": auth_url}
-    return render(request, "notifications/sheets_auth_console.html", context)
-
-
-@login_required
-def sheets_callback_console(request):
-    error = request.GET.get("error")
-    if error:
-        messages.error(request, f"Google OAuth error: {error}")
-        return redirect("notifications:sheets_setup")
-
-    flow_json = request.session.pop("oauth_console_flow_json", None)
-    redirect_uri = request.build_absolute_uri(reverse("notifications:sheets_callback_console"))
-
-    if not flow_json:
-        messages.error(request, "OAuth session expired. Please try again.")
-        return redirect("notifications:sheets_setup")
-
-    if request.method == "GET":
-        code = request.GET.get("code")
-        if not code:
-            messages.error(request, "No authorization code received")
-            return redirect("notifications:sheets_setup")
-
-        sync = GoogleSheetsSync()
-        success, message = sync.exchange_code(code, redirect_uri, flow_json)
-
-        if success:
-            messages.success(request, "Successfully connected to Google Sheets!")
-        else:
-            messages.error(request, f"Authentication failed: {message}")
-
-        return redirect("notifications:sheets_setup")
+@user_passes_test(is_superadmin)
+def settings(request):
+    settings_obj = LibrarySettings.get_active()
 
     if request.method == "POST":
-        code = request.POST.get("code", "").strip()
-        if not code:
-            messages.error(request, "Please enter the authorization code")
-            return redirect("notifications:sheets_auth_console")
+        action = request.POST.get("action")
 
-        sync = GoogleSheetsSync()
-        success, message = sync.exchange_code(code, redirect_uri, flow_json)
+        if action == "update_backup":
+            settings_obj.backup_enabled = request.POST.get("backup_enabled") == "on"
+            settings_obj.backup_hour = int(request.POST.get("backup_hour", 2))
+            settings_obj.backup_retention_days = int(request.POST.get("backup_retention_days", 14))
+            settings_obj.backup_mount_type = request.POST.get("backup_mount_type", "local")
+            settings_obj.backup_mount_path = request.POST.get("backup_mount_path", "")
+            settings_obj.backup_mount_options = request.POST.get("backup_mount_options", "")
+            settings_obj.smb_server = request.POST.get("smb_server", "")
+            settings_obj.smb_username = request.POST.get("smb_username", "")
+            settings_obj.smb_password = request.POST.get("smb_password", "")
+            settings_obj.smb_domain = request.POST.get("smb_domain", "")
+            settings_obj.save()
+            messages.success(request, "Backup settings updated successfully.")
+            return redirect("notifications:settings")
 
-        if success:
-            messages.success(request, "Successfully connected to Google Sheets!")
-        else:
-            messages.error(request, f"Authentication failed: {message}")
+        elif action == "update_system_alerts":
+            settings_obj.system_alert_enabled = request.POST.get("system_alert_enabled") == "on"
+            settings_obj.system_alert_webhook_url = request.POST.get("system_alert_webhook_url", "")
+            settings_obj.save()
+            messages.success(request, "System alert settings updated.")
+            return redirect("notifications:settings")
 
-        return redirect("notifications:sheets_setup")
-
-    return redirect("notifications:sheets_setup")
-
-
-@login_required
-def sheets_sync(request):
-    sync = GoogleSheetsSync()
-
-    if not sync.is_authenticated():
-        messages.error(request, "Not authenticated with Google Sheets")
-        return redirect("notifications:sheets_setup")
-
-    if not sync.spreadsheet_id:
-        success, message = sync.get_or_create_spreadsheet()
-        if success:
-            messages.info(request, f"Created new spreadsheet: {message}")
-        else:
-            messages.error(request, f"Failed to create spreadsheet: {message}")
-            return redirect("notifications:sheets_setup")
-
-    results = sync.sync_all()
-
-    success_count = sum(1 for _, (success, _) in results if success)
-    error_count = sum(1 for _, (success, _) in results if not success)
-
-    if success_count > 0:
-        messages.success(request, f"Synced {success_count} items to Google Sheets")
-    if error_count > 0:
-        messages.error(request, f"Failed to sync {error_count} items")
-
-    return redirect("notifications:sheets_setup")
+    hours = list(range(24))
+    return render(request, "notifications/settings.html", {
+        "settings_obj": settings_obj,
+        "hours": hours,
+    })
 
 
 @login_required
-def sheets_disconnect(request):
-    sync = GoogleSheetsSync()
-    sync.disconnect()
+@user_passes_test(is_superadmin)
+def backup_list(request):
+    from .services.backup import BackupService
 
-    messages.success(request, "Disconnected from Google Sheets")
-    return redirect("notifications:sheets_setup")
+    backup_service = BackupService()
+    backups = backup_service.list_backups()
+    last_backup = backup_service.get_last_backup_info()
+
+    return render(request, "notifications/backup_list.html", {
+        "backups": backups,
+        "last_backup": last_backup,
+    })
+
+
+@login_required
+@user_passes_test(is_superadmin)
+def backup_run(request):
+    from .services.backup import BackupService
+    from .services import SystemAlertService
+
+    if request.method == "POST":
+        backup_service = BackupService()
+        settings_obj = LibrarySettings.get_active()
+
+        if settings_obj.backup_enabled:
+            valid, error = backup_service.validate_mount()
+            if not valid:
+                messages.error(request, f"Backup mount error: {error}")
+                SystemAlertService.alert_backup_failure(f"Mount unavailable: {error}")
+                return redirect("notifications:backup_list")
+
+        try:
+            result = backup_service.create_backup()
+            if result["success"]:
+                messages.success(request, f"Backup created: {result['path']}")
+                SystemAlertService.alert_backup_success(result)
+            else:
+                messages.error(request, f"Backup failed: {result.get('error', 'Unknown error')}")
+                SystemAlertService.alert_backup_failure(result.get('error', 'Unknown error'))
+        except Exception as e:
+            messages.error(request, f"Backup failed: {str(e)}")
+            SystemAlertService.alert_backup_failure(str(e))
+
+        return redirect("notifications:backup_list")
+
+    return redirect("notifications:backup_list")
+
+
+@login_required
+@user_passes_test(is_superadmin)
+def backup_download(request, filename):
+    from .services.backup import BackupService
+
+    if not filename.startswith("library_backup_") or not filename.endswith(".tar.gz"):
+        raise Http404("Invalid filename")
+
+    backup_service = BackupService()
+    backup_path = backup_service.get_backup_dir() / filename
+
+    if not backup_path.exists():
+        raise Http404("Backup not found")
+
+    response = FileResponse(open(backup_path, "rb"))
+    response["Content-Disposition"] = f'attachment; filename="{filename}"'
+    return response

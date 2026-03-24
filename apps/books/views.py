@@ -11,14 +11,6 @@ from apps.loans.models import ActivityLog, Loan, ReturnNote
 from .models import Book, BookCopy
 
 
-def trigger_sheets_sync():
-    try:
-        from apps.loans.services.google_sheets_sync import auto_sync
-        auto_sync()
-    except Exception:
-        pass
-
-
 @login_required
 def book_list(request):
     books = Book.objects.all()
@@ -75,8 +67,6 @@ def book_create(request):
             description=f"Book #{book.book_id} ({book.title}) added with {copies} copy/copies",
             user=request.user,
         )
-        trigger_sheets_sync()
-
         messages.success(request, f"Book #{book.book_id} added with {copies} copy/copies.")
         return redirect("books:book_list")
 
@@ -153,8 +143,6 @@ def book_delete(request, pk):
             description=f"Book #{book_id} ({title}) deleted",
             user=request.user,
         )
-        trigger_sheets_sync()
-
         messages.success(request, f"Book #{book_id} deleted successfully.")
         return redirect("books:book_list")
 

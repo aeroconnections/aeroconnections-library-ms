@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+
+{% block title %}Backup List - AeroConnections Library{% endblock %}
+{% block page_title %}Backup List{% endblock %}
+{% block page_subtitle %}View and download available backups{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    
+    {% if last_backup %}
+    <div class="bg-success-light rounded-xl border border-success/20 p-4 mb-6">
+        <div class="flex items-center justify-between">
+            <div>
+                <h3 class="font-semibold text-success-dark">Last Backup</h3>
+                <p class="text-sm text-success">
+                    {{ last_backup.created|date:"Y-m-d H:i" }} ({{ last_backup.age_hours }} hours ago)
+                </p>
+            </div>
+            <div class="text-right">
+                <p class="text-sm text-success-dark font-medium">{{ last_backup.size_bytes|filesizeformat }}</p>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="bg-warning-light rounded-xl border border-warning/20 p-4 mb-6">
+        <p class="text-warning-dark font-medium">No backups found</p>
+        <p class="text-sm text-warning">Run a backup to create your first backup</p>
+    </div>
+    {% endif %}
+    
+    <div class="bg-white rounded-xl border border-light-grey p-6 mb-6">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-semibold text-dark-grey">Available Backups</h3>
+            <a href="{% url 'notifications:settings' %}" class="text-primary hover:underline flex items-center gap-1">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                </svg>
+                Configure Backup
+            </a>
+        </div>
+        
+        {% if backups %}
+        <div class="overflow-x-auto">
+            <table class="w-full">
+                <thead>
+                    <tr class="border-b border-light-grey">
+                        <th class="text-left py-3 px-4 text-sm font-medium text-grey">Backup File</th>
+                        <th class="text-left py-3 px-4 text-sm font-medium text-grey">Created</th>
+                        <th class="text-right py-3 px-4 text-sm font-medium text-grey">Size</th>
+                        <th class="text-right py-3 px-4 text-sm font-medium text-grey">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for backup in backups %}
+                    <tr class="border-b border-light-grey/50 hover:bg-light-grey/20">
+                        <td class="py-3 px-4">
+                            <code class="text-sm text-dark-grey">{{ backup.name }}</code>
+                        </td>
+                        <td class="py-3 px-4 text-sm text-dark-grey">
+                            {{ backup.created|date:"Y-m-d H:i:s" }}
+                        </td>
+                        <td class="py-3 px-4 text-sm text-dark-grey text-right">
+                            {{ backup.size_bytes|filesizeformat }}
+                        </td>
+                        <td class="py-3 px-4 text-right">
+                            <a href="{% url 'notifications:backup_download' backup.name %}" 
+                               class="inline-flex items-center gap-1 text-primary hover:text-primary-dark">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                                </svg>
+                                Download
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="text-center text-grey py-8">No backups available</p>
+        {% endif %}
+    </div>
+    
+    <div class="flex items-center justify-between">
+        <a href="{% url 'notifications:settings' %}" class="text-dark-grey hover:text-primary flex items-center gap-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+            </svg>
+            Back to Settings
+        </a>
+        
+        <form method="post" action="{% url 'notifications:backup_run' %}">
+            {% csrf_token %}
+            <button type="submit" class="bg-success hover:bg-success-dark text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                </svg>
+                Create New Backup
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}

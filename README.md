@@ -2,12 +2,9 @@
 
 A free and open-source library management system built with Django.
 
-**License:** AGPL-3.0 - This software is free and any derivative works must also be open source.
-
 [![Docker Hub](https://img.shields.io/docker/v/sachinaeroconnections/library-ms?label=docker&style=flat-square)](https://hub.docker.com/r/sachinaeroconnections/library-ms)
 [![Docker Hub](https://img.shields.io/docker/pulls/sachinaeroconnections/library-ms?style=flat-square)](https://hub.docker.com/r/sachinaeroconnections/library-ms)
 [![GitHub release (latest by date)](https://img.shields.io/github/v/release/aeroconnections/aeroconnections-library-ms?style=flat-square)](https://github.com/aeroconnections/aeroconnections-library-ms/releases)
-[![GitHub](https://img.shields.io/github/license/aeroconnections/aeroconnections-library-ms?style=flat-square)](https://github.com/aeroconnections/aeroconnections-library-ms)
 
 ## Features
 
@@ -16,35 +13,16 @@ A free and open-source library management system built with Django.
 - **Borrower Management** — Add borrowers with activation/deactivation support
 - **Return Notes** — Optional notes and damage photos for returns
 - **Activity Log** — Immutable record of all system activities
-- **Webhook Support** — Configure webhooks for external notifications (Slack, Discord)
+- **Webhook Support** — Configure webhooks for external notifications (Slack, Discord, Google Chat)
 - **Email Notifications** — SMTP configuration for email alerts
-- **Google Sheets Backup** — Sync data to Google Sheets for disaster recovery
-- **Configurable Settings** — Loan duration, due thresholds, and max books per borrower
+- **Auto-Backup** — Automatic daily backups with Local, NFS, or SMB/CIFS storage support
+- **System Alerts** — Dedicated webhook for backup status and system notifications
+- **Configurable Settings** — Loan duration, due thresholds, max books per borrower
 - **Modern UI** — Responsive design with AeroConnections branding
 - **Multi-platform** — Supports AMD64 and ARM64 architectures
 - **Setup Wizard** — Easy first-time configuration with PIN protection
 - **CSV Import** — Bulk import books and borrowers via CSV files
 - **Book Autocomplete** — Auto-fill author and ISBN when adding new books
-
-## New in v1.2.5
-
-### OAuth Authentication
-Browser-based Google Sheets OAuth flow with automatic HTTPS detection behind proxies (Tailscale, Cloudflare, etc.).
-
-### UI Improvements
-- App version displayed in footer on all pages
-- Direct links to GitHub and Docker Hub repositories
-- Settings page accessible from navbar (superadmin only)
-
-## New in v1.2.0
-
-### CSV Import
-Bulk import books and borrowers via CSV files with preview and duplicate detection. Access via:
-- `/books/import/` - Import books
-- `/borrowers/import/` - Import borrowers
-
-### Book Search Autocomplete
-When adding new books, search existing inventory to auto-fill author and ISBN fields.
 
 ## First-Time Setup
 
@@ -64,7 +42,7 @@ Fill in the setup form with:
 | Field | Description |
 |-------|-------------|
 | Library Name | Your library's name |
-| Domain(s) | URL(s) where the app will be accessed. Supports multiple domains separated by commas (e.g., `https://library.com, https://staging.library.com`) |
+| Domain(s) | URL(s) where the app will be accessed. Supports multiple domains separated by commas |
 | Admin Username | Username for the admin account |
 | Admin Email | Email for the admin account |
 | Admin Password | Password for the admin account |
@@ -80,19 +58,9 @@ After setup, log in at:
 http://localhost:8000/accounts/login/
 ```
 
-### Accessing Setup in the Future
-
-To access the setup page after initial configuration:
-
-1. Go to `/setup/`
-2. Enter your Setup PIN
-3. You can change settings or reset configurations
-
 ## Deployment
 
 ### Docker (Recommended)
-
-Data is persisted at `/app/data/` inside the container. Mount a volume to preserve all data:
 
 ```bash
 docker run -d \
@@ -105,7 +73,7 @@ docker run -d \
 For docker-compose, the volume is configured automatically:
 
 ```bash
-curl -O https://raw.githubusercontent.com/aeroconnections/library-ms/main/docker-compose.yml
+curl -O https://raw.githubusercontent.com/aeroconnections/aeroconnections-library-ms/main/docker-compose.yml
 docker-compose up -d
 ```
 
@@ -113,7 +81,7 @@ docker-compose up -d
 
 ```bash
 # Clone the repository
-git clone https://github.com/aeroconnections/library-ms.git
+git clone https://github.com/aeroconnections/aeroconnections-library-ms.git
 cd library-ms
 
 # Create virtual environment
@@ -132,42 +100,58 @@ python manage.py runserver
 
 Then access `/setup/` to configure your library.
 
-## Google Sheets Backup
+## Auto-Backup
 
-### Setup
+### Configuration
 
-1. Go to **Settings > Google Sheets** (`/settings/sheets/`)
-2. Copy your OAuth credentials file to the container:
-   ```bash
-   docker cp sheets_credentials.json library-ms:/app/data/
-   ```
-3. Click **"Connect Google Sheets"**
-4. Sign in with your Google account and grant permissions
-5. Click **"Create Spreadsheet & Sync All Data"** for first-time sync
+1. Go to **Settings** (`/settings/`) - accessible via navbar for superadmins
+2. Enable Auto-Backup
+3. Configure backup time (default: 2 AM)
+4. Set retention period (default: 14 days)
+5. Choose mount type:
+   - **Local** - Store backups in container's data directory
+   - **NFS** - Network File System mount
+   - **SMB/CIFS** - Windows/Samba share
 
-### How It Works
+### Mount Configuration
 
-- Data is automatically synced whenever you:
-  - Check out or return a book
-  - Add or remove a borrower
-  - Add or remove a book
-- Manual sync available anytime via **"Sync Now"** button
-- Credentials and data are stored in `/app/data/` (persists with Docker volume)
+For NFS/SMB mounts, enter the mount path and credentials:
 
-### OAuth Credentials Setup
+- **Mount Path**: e.g., `/mnt/backup` (NFS) or `//server/share` (SMB)
+- **SMB Credentials**: Server, username, password, domain (if required)
 
-1. Go to [Google Cloud Console](https://console.cloud.google.com)
-2. Create a new project or select existing
-3. Enable **Google Sheets API**
-4. Go to **Credentials** > **Create Credentials** > **OAuth client ID**
-5. Application type: **Desktop app**
-6. Download the JSON file and rename it to `sheets_credentials.json`
+### Backup Storage
 
-### Manual Sync Command
+Backups are stored as `.tar.gz` files containing:
+- SQLite database
+- Media files (if any)
+
+Access backup management at `/settings/backups/`
+
+### Celery Beat
+
+For automatic daily backups, ensure Celery Beat is running:
 
 ```bash
-docker exec -it library-ms python manage.py sync_to_sheets
+docker exec -it library-ms celery -A config beat -l INFO
 ```
+
+## Webhooks
+
+### Notification Webhook
+
+For loan alerts (overdue, due soon):
+
+- Configure in Settings → Notification Webhook
+- Supports Slack, Discord, Google Chat, and custom webhooks
+
+### System Alert Webhook
+
+For backup status and system events (separate from notifications):
+
+- Configure in Settings → System Alerts
+- Receives backup success/failure notifications
+- Alerts when backup mount is unavailable
 
 ## Troubleshooting
 
@@ -188,72 +172,26 @@ docker run -d \
   sachinaeroconnections/library-ms:latest
 ```
 
-For docker-compose, add to your service:
-
-```yaml
-services:
-  web:
-    environment:
-      - CSRF_TRUSTED_ORIGINS=http://localhost:8000,https://your-domain.com
-```
-
 **Option 2: Update Domain in Database (Recommended)**
 
-If you've already completed the setup wizard, you can update your domain directly in the database:
-
 ```bash
-# Enter the container shell
 docker exec -it library-ms python manage.py shell
 ```
 
-Then run these commands:
-
 ```python
-# View current domain
-from apps.setup.models import SetupConfig
-c = SetupConfig.objects.first()
-print(f"Current domain: {c.domain}")
-
-# Update domain (single domain)
-c.domain = 'https://your-domain.com'
-c.save()
-
-# Update domain (multiple domains)
-c.domain = 'https://your-domain.com, https://staging.your-domain.com'
-c.save()
-
-# Verify
-print(f"New domain: {c.domain}")
-```
-
-Or in a single command:
-
-```bash
-docker exec -it library-ms python manage.py shell -c "
 from apps.setup.models import SetupConfig
 c = SetupConfig.objects.first()
 c.domain = 'https://your-domain.com'
 c.save()
-print('Domain updated to:', c.domain)
-"
-```
-
-After updating the domain, restart the container:
-```bash
-docker restart library-ms
 ```
 
 ### View Current CSRF Trusted Origins
-
-To check which origins are currently trusted:
 
 ```bash
 docker exec -it library-ms python manage.py shell -c "from django.conf import settings; print('Trusted origins:', settings.CSRF_TRUSTED_ORIGINS)"
 ```
 
 ### Reset Setup Configuration
-
-To reset the setup configuration and run the wizard again:
 
 ```bash
 docker exec -it library-ms python manage.py shell -c "
@@ -270,17 +208,6 @@ print('Setup configuration deleted. Access /setup/ to reconfigure.')
 | `clear_all_data` | Clear all data from database (requires confirmation) |
 | `populate_test_data` | Add sample books, borrowers, and loans |
 | `remove_test_data` | Remove all test data (with confirmation) |
-| `sync_to_sheets` | Sync data to Google Sheets for backup |
-
-### Clear All Data
-
-To reset the database completely:
-
-```bash
-docker exec -it library-ms python manage.py clear_all_data
-```
-
-Type `yes` when prompted to confirm deletion of all data.
 
 ## Tech Stack
 
@@ -288,9 +215,10 @@ Type `yes` when prompted to confirm deletion of all data.
 |-------|------------|
 | Backend | Django 5 |
 | Frontend | TailwindCSS |
-| Database | SQLite (dev) / PostgreSQL (prod) |
+| Database | SQLite |
 | Container | Docker (Alpine-based) |
-| Notifications | Webhooks, Email, Google Sheets |
+| Task Queue | Celery + Redis |
+| Notifications | Webhooks, Email |
 
 ## Project Structure
 
@@ -300,7 +228,7 @@ library-ms/
 │   ├── books/              # Book & copy management
 │   ├── borrowers/          # Borrower management
 │   ├── loans/             # Loan tracking & returns
-│   ├── notifications/      # Settings & branding
+│   ├── notifications/      # Settings, backup, branding
 │   └── setup/            # Setup wizard & configuration
 ├── config/                 # Django settings
 ├── templates/              # HTML templates
@@ -309,9 +237,7 @@ library-ms/
 ├── docker-compose.yml
 ├── Dockerfile
 ├── requirements.txt
-├── README.md
-├── CHANGELOG.md
-└── LICENSE (AGPL-3.0)
+└── README.md
 ```
 
 ## Loan System
@@ -321,16 +247,3 @@ library-ms/
 | 0-24 | Active | Gray |
 | 25-29 | Due Soon | Amber |
 | 30+ | Overdue | Red |
-
-## Documentation
-
-- [Design Documentation](design.md) — Brand guidelines and UI specs
-- [Contributing Guide](CONTRIBUTING.md) — How to contribute
-
-## Contributing
-
-Contributions are welcome! Please read [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
-
-## Code of Conduct
-
-Please read our [Code of Conduct](CODE_OF_CONDUCT.md) before participating.

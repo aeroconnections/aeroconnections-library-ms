@@ -5,7 +5,7 @@ from django.utils import timezone
 
 from apps.loans.models import Loan
 
-from .services import NotificationService
+from .services import NotificationService, SystemAlertService
 
 
 @shared_task
@@ -44,3 +44,36 @@ def daily_overdue_check():
         "overdue": overdue_results,
         "due_soon": due_soon_results,
     }
+
+
+@shared_task
+def daily_database_backup():
+    from .models import LibrarySettings
+    from .services.backup import BackupService
+
+    settings_obj = LibrarySettings.get_active()
+    if not settings_obj or not settings_obj.backup_enabled:
+        return {"skipped": True, "reason": "Backup disabled"}
+
+    backup_service = BackupService()
+
+    valid, error = backup_service.validate_mount()
+    if not valid:
+        SystemAlertService.alert_mount_unavailable(
+            settings_obj.backup_mount_type,
+            settings_obj.backup_mount_path
+        )
+        return {"success": False, "error": f"Mount unavailable: {error}"}
+
+    try:
+        result = backup_service.create_backup()
+        if result["success"]:
+            deleted = backup_service.cleanup_old_backups()
+            SystemAlertService.alert_backup_success(result)
+            return {"success": True, "backup": result, "deleted": len(deleted)}
+        else:
+            SystemAlertService.alert_backup_failure(result.get("error", "Unknown error"))
+            return {"success": False, "error": result.get("error")}
+    except Exception as e:
+        SystemAlertService.alert_backup_failure(str(e))
+        return {"success": False, "error": str(e)}

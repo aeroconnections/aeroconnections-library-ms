@@ -41,7 +41,7 @@ CSRF_TRUSTED_ORIGINS = _get_csrf_trusted_origins()
 
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
-APP_VERSION = "1.2.8"
+APP_VERSION = "1.3.0"
 GITHUB_REPO = "https://github.com/aeroconnections/aeroconnections-library-ms"
 DOCKERHUB_REPO = "https://hub.docker.com/r/sachinaeroconnections/library-ms"
 
@@ -104,7 +104,7 @@ ASGI_APPLICATION = "config.asgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "data" / "db.sqlite3",
+        "NAME": BASE_DIR / "db.sqlite3",
     }
 }
 

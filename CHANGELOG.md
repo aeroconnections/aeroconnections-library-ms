@@ -4,6 +4,30 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.3.0] - 2026-03-24
+
+### Removed
+- **Google Sheets Sync** - Removed due to OAuth complexity issues
+
+### Added
+- **Auto-Backup System** - Daily automated database backups
+  - Configurable backup time (default: 2 AM)
+  - Configurable retention (default: 14 days)
+  - Support for Local, NFS, and SMB/CIFS mounts
+  - Manual backup trigger option
+  - Backup list with download links
+- **System Alert Webhook** - Separate webhook for system events
+  - Backup success/failure notifications
+  - Mount unavailable alerts
+  - Independent from loan notification webhook
+
+### Changed
+- **Database Path** - Fixed SQLite path from `data/db.sqlite3` to `db.sqlite3`
+- **Settings Page** - Replaced Google Sheets with Backup and System Alert configuration
+
+### Fixed
+- **OAuth Issues** - Removed problematic OAuth PKCE flow
+
 ## [1.2.5] - 2026-03-23
 
 ### Fixed

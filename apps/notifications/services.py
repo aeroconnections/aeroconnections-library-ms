@@ -3,6 +3,7 @@ import logging
 import requests
 from django.conf import settings
 from django.core.mail import send_mail
+from django.utils import timezone
 
 logger = logging.getLogger(__name__)
 
@@ -95,3 +96,75 @@ class NotificationService:
         success = NotificationService.send_google_chat_message(message)
 
         return {"chat": success, "count": len(loans)}
+
+
+class SystemAlertService:
+    @staticmethod
+    def send_alert(level: str, title: str, message: str) -> bool:
+        from .models import LibrarySettings
+
+        settings_obj = LibrarySettings.get_active()
+        if not settings_obj or not settings_obj.system_alert_enabled:
+            return False
+
+        webhook_url = settings_obj.system_alert_webhook_url
+        if not webhook_url:
+            return False
+
+        emoji = {
+            "info": ":information_source:",
+            "warning": ":warning:",
+            "error": ":x:",
+            "critical": ":fire:",
+        }.get(level, ":bell:")
+
+        message_lines = [
+            f"{emoji} *{title}*",
+            "",
+            message,
+            "",
+            f"Sent: {timezone.now().strftime('%Y-%m-%d %H:%M:%S')}",
+        ]
+
+        full_message = "\n".join(message_lines)
+
+        try:
+            payload = {"text": full_message}
+            response = requests.post(
+                webhook_url,
+                json=payload,
+                headers={"Content-Type": "application/json"},
+                timeout=10,
+            )
+            response.raise_for_status()
+            logger.info(f"System alert sent: {title}")
+            return True
+        except requests.RequestException as e:
+            logger.error(f"Failed to send system alert: {e}")
+            return False
+
+    @staticmethod
+    def alert_backup_success(backup_info: dict):
+        size_mb = backup_info.get("size_bytes", 0) / 1024 / 1024
+        message = (
+            f"Backup created successfully\n\n"
+            f"File: {backup_info.get('name', 'Unknown')}\n"
+            f"Size: {size_mb:.2f} MB\n"
+            f"Path: {backup_info.get('path', 'Unknown')}"
+        )
+        return SystemAlertService.send_alert("info", "Library Backup Complete", message)
+
+    @staticmethod
+    def alert_backup_failure(error: str):
+        message = f"Backup failed with error:\n\n{error}"
+        return SystemAlertService.send_alert("error", "Library Backup Failed", message)
+
+    @staticmethod
+    def alert_mount_unavailable(mount_type: str, path: str):
+        message = (
+            f"Backup is enabled but mount is unavailable.\n\n"
+            f"Type: {mount_type}\n"
+            f"Path: {path}\n\n"
+            f"Please check your backup configuration."
+        )
+        return SystemAlertService.send_alert("warning", "Backup Mount Unavailable", message)
