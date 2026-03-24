@@ -4,7 +4,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('notifications', '0004_remove_google_sheets_id'),
+        ('notifications', '0003_librarysettings'),
     ]
 
     operations = [

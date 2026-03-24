@@ -185,7 +185,7 @@ library-ms/
 │   │   └── tests/
 │   ├── loans/          # Loan tracking
 │   │   └── ...
-│   └── notifications/  # Alerts & webhooks
+│   └── notifications/  # Settings, backup, alerts & webhooks
 │       └── ...
 ├── config/             # Django settings
 ├── static/
