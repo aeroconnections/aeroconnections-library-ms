@@ -25,8 +25,27 @@ class BackupService:
         if settings_obj and settings_obj.backup_mount_type == 'local':
             return self.backup_dir
         elif settings_obj and settings_obj.backup_mount_type in ['nfs', 'smb']:
-            return Path(settings_obj.backup_mount_path) if settings_obj.backup_mount_path else self.backup_dir
+            mount_path = settings_obj.backup_mount_path or ""
+            if settings_obj.backup_mount_type == 'smb' and self._is_remote_path(mount_path):
+                return Path("/mnt/backups")
+            return Path(mount_path) if mount_path else self.backup_dir
         return self.backup_dir
+
+    @staticmethod
+    def _is_remote_path(path_value):
+        value = (path_value or "").strip()
+        return value.startswith("smb://") or value.startswith("//")
+
+    @staticmethod
+    def _extract_share_from_remote(remote_path):
+        value = (remote_path or "").strip()
+        if value.startswith("smb://"):
+            value = value[len("smb://"):]
+        value = value.strip("/")
+        parts = value.split("/", 1)
+        if len(parts) > 1:
+            return parts[1]
+        return ""
 
     def validate_mount(self):
         settings_obj = self._get_settings()
@@ -51,17 +70,23 @@ class BackupService:
             if not mount_path:
                 return False, "Mount path not configured"
 
-            path = Path(mount_path)
+            remote_hint = ""
+            local_mount_path = mount_path
+            if settings_obj.backup_mount_type == 'smb' and self._is_remote_path(mount_path):
+                remote_hint = mount_path
+                local_mount_path = "/mnt/backups"
+
+            path = Path(local_mount_path)
             if settings_obj.backup_mount_type == 'smb':
                 path.mkdir(parents=True, exist_ok=True)
                 if not os.path.ismount(path):
-                    mounted, mount_error = self._mount_smb(settings_obj)
+                    mounted, mount_error = self._mount_smb(settings_obj, str(path), remote_hint)
                     if not mounted:
-                        return False, f"SMB mount failed for {mount_path}: {mount_error}"
+                        return False, f"SMB mount failed for {settings_obj.smb_server or remote_hint or mount_path}: {mount_error}"
                 if not os.path.ismount(path):
-                    return False, f"SMB path is not mounted: {mount_path}"
+                    return False, f"SMB path is not mounted: {path}"
             elif not path.exists():
-                    return False, f"Mount path not accessible: {mount_path}"
+                return False, f"Mount path not accessible: {mount_path}"
 
             try:
                 test_file = path / ".write_test"
@@ -108,8 +133,9 @@ class BackupService:
         return {"username": "", "password": "", "domain": ""}
 
     @staticmethod
-    def _normalize_smb_source(smb_server, mount_path):
+    def _normalize_smb_source(smb_server, mount_path, remote_hint=""):
         raw = (smb_server or "").strip()
+        hint_share = BackupService._extract_share_from_remote(remote_hint)
         if raw.startswith("smb://"):
             raw = raw[len("smb://"):]
         raw = raw.strip("/")
@@ -121,6 +147,9 @@ class BackupService:
         host = parts[0] if parts and parts[0] else ""
         share = parts[1] if len(parts) > 1 and parts[1] else ""
 
+        if not share and hint_share:
+            share = hint_share
+
         if not share:
             share = Path(mount_path).name
 
@@ -129,10 +158,9 @@ class BackupService:
 
         return f"//{host}/{share}"
 
-    def _mount_smb(self, settings_obj):
+    def _mount_smb(self, settings_obj, mount_path, remote_hint=""):
         try:
-            mount_path = settings_obj.backup_mount_path
-            smb_source = self._normalize_smb_source(settings_obj.smb_server, mount_path)
+            smb_source = self._normalize_smb_source(settings_obj.smb_server, mount_path, remote_hint)
             secret_creds = self._load_smb_credentials_from_secret()
 
             smb_username = settings_obj.smb_username or secret_creds["username"]
