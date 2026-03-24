@@ -65,7 +65,6 @@ class BackupService:
         return True, None
 
     def create_backup(self):
-        settings_obj = self._get_settings()
         timestamp = timezone.now().strftime("%Y-%m-%d_%H%M%S")
         backup_name = f"library_backup_{timestamp}.tar.gz"
         backup_dir = self.get_backup_dir()
