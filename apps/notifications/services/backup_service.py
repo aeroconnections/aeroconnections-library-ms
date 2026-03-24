@@ -1,6 +1,7 @@
 import json
 import os
 import shutil
+import subprocess
 import tarfile
 from datetime import datetime
 from pathlib import Path
@@ -51,13 +52,15 @@ class BackupService:
                 return False, "Mount path not configured"
 
             path = Path(mount_path)
-            if not path.exists():
-                if settings_obj.backup_mount_type == 'smb':
-                    mounted = self._mount_smb(settings_obj)
+            if settings_obj.backup_mount_type == 'smb':
+                path.mkdir(parents=True, exist_ok=True)
+                if not os.path.ismount(path):
+                    mounted, mount_error = self._mount_smb(settings_obj)
                     if not mounted:
-                        return False, f"Mount path not accessible and SMB mount failed: {mount_path}"
-                    path = Path(mount_path)
-                else:
+                        return False, f"SMB mount failed for {mount_path}: {mount_error}"
+                if not os.path.ismount(path):
+                    return False, f"SMB path is not mounted: {mount_path}"
+            elif not path.exists():
                     return False, f"Mount path not accessible: {mount_path}"
 
             try:
@@ -70,20 +73,78 @@ class BackupService:
 
         return True, None
 
+    def _load_smb_credentials_from_secret(self):
+        secret_candidates = [
+            os.environ.get("SMB_CREDENTIALS_FILE"),
+            "/run/secrets/smb-credentials",
+            "/run/secrets/smb_credentials",
+            str(Path(settings.BASE_DIR) / "secrets" / "smb-credentials.env"),
+            str(Path(settings.BASE_DIR) / "secrets" / "smb-credentials.env.example"),
+        ]
+
+        creds = {}
+        for candidate in secret_candidates:
+            if not candidate:
+                continue
+
+            secret_path = Path(candidate)
+            if not secret_path.exists():
+                continue
+
+            for line in secret_path.read_text().splitlines():
+                line = line.strip()
+                if not line or line.startswith("#") or "=" not in line:
+                    continue
+                key, value = line.split("=", 1)
+                creds[key.strip()] = value.strip()
+
+            if creds:
+                return {
+                    "username": creds.get("SMB_USERNAME", ""),
+                    "password": creds.get("SMB_PASSWORD", ""),
+                    "domain": creds.get("SMB_DOMAIN", ""),
+                }
+
+        return {"username": "", "password": "", "domain": ""}
+
+    @staticmethod
+    def _normalize_smb_source(smb_server, mount_path):
+        raw = (smb_server or "").strip()
+        if raw.startswith("smb://"):
+            raw = raw[len("smb://"):]
+        raw = raw.strip("/")
+
+        if raw.startswith("//"):
+            raw = raw[2:]
+
+        parts = raw.split("/", 1)
+        host = parts[0] if parts and parts[0] else ""
+        share = parts[1] if len(parts) > 1 and parts[1] else ""
+
+        if not share:
+            share = Path(mount_path).name
+
+        if not host or not share:
+            return ""
+
+        return f"//{host}/{share}"
+
     def _mount_smb(self, settings_obj):
         try:
-            import subprocess
-
             mount_path = settings_obj.backup_mount_path
-            smb_server = settings_obj.smb_server or f"//{settings_obj.smb_server}"
-            smb_username = settings_obj.smb_username
-            smb_password = settings_obj.smb_password
-            smb_domain = settings_obj.smb_domain
+            smb_source = self._normalize_smb_source(settings_obj.smb_server, mount_path)
+            secret_creds = self._load_smb_credentials_from_secret()
 
-            if not smb_server or not smb_username:
-                return False
+            smb_username = settings_obj.smb_username or secret_creds["username"]
+            smb_password = settings_obj.smb_password or secret_creds["password"]
+            smb_domain = settings_obj.smb_domain or secret_creds["domain"]
 
-            Path(mount_path).parent.mkdir(parents=True, exist_ok=True)
+            if not smb_source:
+                return False, "Invalid SMB server/share. Use smb://host/share or //host/share"
+            if not smb_username:
+                return False, "SMB username not configured (UI or secrets file)"
+
+            Path(mount_path).mkdir(parents=True, exist_ok=True)
 
             mount_options = ["rw", "vers=3.0"]
             if smb_username:
@@ -95,15 +156,23 @@ class BackupService:
 
             cmd = [
                 "mount", "-t", "cifs",
-                smb_server,
+                smb_source,
                 mount_path,
                 "-o", ",".join(mount_options)
             ]
 
             result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
-            return result.returncode == 0
-        except Exception:
-            return False
+            if result.returncode != 0:
+                stderr = (result.stderr or "").strip()
+                stdout = (result.stdout or "").strip()
+                details = stderr or stdout or "Unknown mount error"
+                if "permission denied" in details.lower():
+                    details += " (container may need privileged mount capability)"
+                return False, details
+
+            return True, None
+        except Exception as e:
+            return False, str(e)
 
     def create_backup(self):
         timestamp = timezone.now().strftime("%Y-%m-%d_%H%M%S")
