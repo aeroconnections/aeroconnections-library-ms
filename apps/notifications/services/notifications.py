@@ -101,7 +101,7 @@ class NotificationService:
 class SystemAlertService:
     @staticmethod
     def send_alert(level: str, title: str, message: str) -> bool:
-        from .models import LibrarySettings
+        from apps.notifications.models import LibrarySettings
 
         settings_obj = LibrarySettings.get_active()
         if not settings_obj or not settings_obj.system_alert_enabled:
