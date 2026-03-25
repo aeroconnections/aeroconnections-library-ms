@@ -1,10 +1,58 @@
+from django import forms
 from django.contrib import admin
 
 from .models import Branding, LibrarySettings
 
 
+class LibrarySettingsAdminForm(forms.ModelForm):
+    webhook_secret = forms.CharField(
+        required=False,
+        widget=forms.PasswordInput(render_value=False),
+        help_text="Leave blank to keep current value.",
+    )
+    smb_password = forms.CharField(
+        required=False,
+        widget=forms.PasswordInput(render_value=False),
+        help_text="Leave blank to keep current value.",
+    )
+    email_password = forms.CharField(
+        required=False,
+        widget=forms.PasswordInput(render_value=False),
+        help_text="Leave blank to keep current value.",
+    )
+
+    class Meta:
+        model = LibrarySettings
+        fields = "__all__"
+
+    def clean_webhook_secret(self):
+        value = self.cleaned_data.get("webhook_secret")
+        if value:
+            return value
+        if self.instance and self.instance.pk:
+            return self.instance.webhook_secret
+        return ""
+
+    def clean_smb_password(self):
+        value = self.cleaned_data.get("smb_password")
+        if value:
+            return value
+        if self.instance and self.instance.pk:
+            return self.instance.smb_password
+        return ""
+
+    def clean_email_password(self):
+        value = self.cleaned_data.get("email_password")
+        if value:
+            return value
+        if self.instance and self.instance.pk:
+            return self.instance.email_password
+        return ""
+
+
 @admin.register(LibrarySettings)
 class LibrarySettingsAdmin(admin.ModelAdmin):
+    form = LibrarySettingsAdminForm
     list_display = ['__str__', 'loan_duration_days', 'due_soon_threshold', 'backup_enabled', 'is_active', 'updated_at']
     list_filter = ['is_active', 'backup_enabled']
 
@@ -16,7 +64,7 @@ class LibrarySettingsAdmin(admin.ModelAdmin):
             'fields': ('notify_on_checkout', 'notify_on_return', 'notify_on_overdue', 'overdue_reminder_days')
         }),
         ('Notification Webhook', {
-            'fields': ('webhook_url', 'webhook_secret_display', 'webhook_secret'),
+            'fields': ('webhook_url', 'webhook_secret'),
             'description': 'Configure webhook URL for external notifications (Slack, Discord, custom). '
                           'Leave blank to keep current value.'
         }),
@@ -25,8 +73,8 @@ class LibrarySettingsAdmin(admin.ModelAdmin):
             'classes': ('collapse',),
         }),
         ('SMB Settings', {
-            'fields': ('smb_server', 'smb_username', 'smb_password_display', 'smb_password', 'smb_domain'),
-            'description': 'Password is masked. Enter new value to change, or leave blank to keep current.',
+            'fields': ('smb_server', 'smb_username', 'smb_password', 'smb_domain'),
+            'description': 'Password is hidden. Enter a new value to change, or leave blank to keep current.',
             'classes': ('collapse',),
         }),
         ('System Alerts', {
@@ -34,39 +82,13 @@ class LibrarySettingsAdmin(admin.ModelAdmin):
             'description': 'System alerts for backup status and errors (separate from notification webhook)'
         }),
         ('Email Settings', {
-            'fields': ('email_notifications_enabled', 'email_host', 'email_port', 'email_username', 'email_password_display', 'email_password', 'email_from_address', 'email_use_tls'),
-            'description': 'Password is masked. Enter new value to change, or leave blank to keep current.',
+            'fields': ('email_notifications_enabled', 'email_host', 'email_port', 'email_username', 'email_password', 'email_from_address', 'email_use_tls'),
+            'description': 'Password is hidden. Enter a new value to change, or leave blank to keep current.',
         }),
         ('Status', {
             'fields': ('is_active',)
         }),
     )
-
-    readonly_fields = ('webhook_secret_display', 'smb_password_display', 'email_password_display')
-
-    def get_readonly_fields(self, request, obj=None):
-        if obj:
-            return self.readonly_fields + ('webhook_secret', 'smb_password', 'email_password')
-        return self.readonly_fields
-
-    def webhook_secret_display(self, obj):
-        if obj and obj.webhook_secret:
-            return "********"
-        return "(not set)"
-    webhook_secret_display.short_description = "Webhook Secret"
-
-    def smb_password_display(self, obj):
-        if obj and obj.smb_password:
-            return "********"
-        return "(not set)"
-    smb_password_display.short_description = "SMB Password"
-
-    def email_password_display(self, obj):
-        if obj and obj.email_password:
-            return "********"
-        return "(not set)"
-    email_password_display.short_description = "Email Password"
-
 
 @admin.register(Branding)
 class BrandingAdmin(admin.ModelAdmin):
