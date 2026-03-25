@@ -1,11 +1,130 @@
 {% extends "base.html" %}
 
-{% block title %}Backup List - AeroConnections Library{% endblock %}
-{% block page_title %}Backup List{% endblock %}
-{% block page_subtitle %}View and download available backups{% endblock %}
+{% block title %}Backup - AeroConnections Library{% endblock %}
+{% block page_title %}Backup Settings{% endblock %}
+{% block page_subtitle %}Configure automated backups and view backup history{% endblock %}
 
 {% block content %}
 <div class="max-w-4xl mx-auto">
+    
+    <!-- Backup Configuration -->
+    <div class="bg-white rounded-xl border border-light-grey p-6 mb-6">
+        <h3 class="text-lg font-semibold text-dark-grey mb-4 flex items-center gap-2">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+            </svg>
+            Configure Backup
+        </h3>
+        
+        <form method="post" action="{% url 'notifications:backup_list' %}">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="update_backup">
+            
+            <div class="space-y-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <label class="font-medium text-dark-grey">Enable Auto-Backup</label>
+                        <p class="text-sm text-grey">Automatically backup database daily</p>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" name="backup_enabled" class="sr-only peer" 
+                               {% if settings_obj.backup_enabled %}checked{% endif %}>
+                        <div class="w-11 h-6 bg-light-grey peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+                    </label>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-dark-grey mb-1">Backup Hour</label>
+                        <select name="backup_hour" class="w-full px-4 py-2 border border-light-grey rounded-lg focus:ring-2 focus:ring-primary focus:border-primary">
+                            {% for h in hours %}
+                            <option value="{{ h }}" {% if settings_obj.backup_hour == h %}selected{% endif %}>
+                                {{ h }}:00
+                            </option>
+                            {% endfor %}
+                        </select>
+                        <p class="text-xs text-grey mt-1">24-hour format</p>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-dark-grey mb-1">Retention Days</label>
+                        <input type="number" name="backup_retention_days" value="{{ settings_obj.backup_retention_days }}" 
+                               min="1" max="90" class="w-full px-4 py-2 border border-light-grey rounded-lg focus:ring-2 focus:ring-primary focus:border-primary">
+                        <p class="text-xs text-grey mt-1">Number of days to keep backups</p>
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-dark-grey mb-1">Mount Type</label>
+                    <select name="backup_mount_type" id="mount_type" class="w-full px-4 py-2 border border-light-grey rounded-lg focus:ring-2 focus:ring-primary focus:border-primary">
+                        <option value="local" {% if settings_obj.backup_mount_type == 'local' %}selected{% endif %}>Local</option>
+                        <option value="nfs" {% if settings_obj.backup_mount_type == 'nfs' %}selected{% endif %}>NFS</option>
+                        <option value="smb" {% if settings_obj.backup_mount_type == 'smb' %}selected{% endif %}>SMB/CIFS</option>
+                    </select>
+                </div>
+                
+                <div id="mount_path_field">
+                    <label class="block text-sm font-medium text-dark-grey mb-1">Mount Path</label>
+                    <input type="text" name="backup_mount_path" value="{{ settings_obj.backup_mount_path|default:'' }}" 
+                           placeholder="/mnt/backup or //server/share"
+                           class="w-full px-4 py-2 border border-light-grey rounded-lg focus:ring-2 focus:ring-primary focus:border-primary">
+                    <p class="text-xs text-grey mt-1">Required for NFS and SMB mounts. Mount SMB on host, then bind path into container.</p>
+                </div>
+                
+                <div id="smb_fields" class="hidden">
+                    <h4 class="font-medium text-dark-grey mb-3">SMB Credentials</h4>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-dark-grey mb-1">Server</label>
+                            <input type="text" name="smb_server" value="{{ settings_obj.smb_server|default:'' }}" 
+                                   placeholder="//server/share"
+                                   class="w-full px-4 py-2 border border-light-grey rounded-lg focus:ring-2 focus:ring-primary focus:border-primary">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-dark-grey mb-1">Domain</label>
+                            <input type="text" name="smb_domain" value="{{ settings_obj.smb_domain|default:'' }}" 
+                                   placeholder="WORKGROUP"
+                                   class="w-full px-4 py-2 border border-light-grey rounded-lg focus:ring-2 focus:ring-primary focus:border-primary">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-dark-grey mb-1">Username</label>
+                            <input type="text" name="smb_username" value="{{ settings_obj.smb_username|default:'' }}" 
+                                   class="w-full px-4 py-2 border border-light-grey rounded-lg focus:ring-2 focus:ring-primary focus:border-primary">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-dark-grey mb-1">Password</label>
+                            <input type="password" name="smb_password" value="" 
+                                   class="w-full px-4 py-2 border border-light-grey rounded-lg focus:ring-2 focus:ring-primary focus:border-primary">
+                            <p class="text-xs text-grey mt-1">Leave blank to keep current password or use secrets file.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-dark-grey mb-1">Mount Options (Optional)</label>
+                    <input type="text" name="backup_mount_options" value="{{ settings_obj.backup_mount_options|default:'' }}" 
+                           placeholder="rw,soft,intr"
+                           class="w-full px-4 py-2 border border-light-grey rounded-lg focus:ring-2 focus:ring-primary focus:border-primary">
+                </div>
+                
+                <div class="flex items-center gap-4 pt-4">
+                    <button type="submit" class="bg-primary hover:bg-primary-dark text-white px-6 py-2 rounded-lg font-medium transition-colors">
+                        Save Settings
+                    </button>
+                    <form method="post" action="{% url 'notifications:backup_validate' %}" class="inline">
+                        {% csrf_token %}
+                        <button type="submit" class="bg-info hover:bg-info-dark text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                            Validate
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </form>
+    </div>
 
     {% if backup_diagnostics %}
     <div class="bg-info-light rounded-xl border border-info/20 p-4 mb-6">
@@ -48,13 +167,6 @@
     <div class="bg-white rounded-xl border border-light-grey p-6 mb-6">
         <div class="flex items-center justify-between mb-4">
             <h3 class="text-lg font-semibold text-dark-grey">Available Backups</h3>
-            <a href="{% url 'notifications:settings' %}" class="text-primary hover:underline flex items-center gap-1">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
-                </svg>
-                Configure Backup
-            </a>
         </div>
         
         {% if backups %}
@@ -113,9 +225,30 @@
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
                 </svg>
-                Create New Backup
+                Create Backup
             </button>
         </form>
     </div>
 </div>
+
+<script>
+document.getElementById('mount_type').addEventListener('change', function() {
+    const mountPathField = document.getElementById('mount_path_field');
+    const smbFields = document.getElementById('smb_fields');
+    
+    if (this.value === 'local') {
+        mountPathField.classList.add('hidden');
+        smbFields.classList.add('hidden');
+    } else if (this.value === 'nfs') {
+        mountPathField.classList.remove('hidden');
+        smbFields.classList.add('hidden');
+    } else if (this.value === 'smb') {
+        mountPathField.classList.remove('hidden');
+        smbFields.classList.remove('hidden');
+    }
+});
+
+// Initialize on page load
+document.getElementById('mount_type').dispatchEvent(new Event('change'));
+</script>
 {% endblock %}

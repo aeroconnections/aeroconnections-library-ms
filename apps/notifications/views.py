@@ -13,6 +13,14 @@ def is_superadmin(user):
 @login_required
 @user_passes_test(is_superadmin)
 def settings(request):
+    return render(request, "notifications/settings.html")
+
+
+@login_required
+@user_passes_test(is_superadmin)
+def backup_list(request):
+    from .services import BackupService
+
     settings_obj = LibrarySettings.get_active()
 
     if request.method == "POST":
@@ -33,35 +41,19 @@ def settings(request):
             settings_obj.smb_domain = request.POST.get("smb_domain", "")
             settings_obj.save()
             messages.success(request, "Backup settings updated successfully.")
-            return redirect("notifications:settings")
-
-        elif action == "update_system_alerts":
-            settings_obj.system_alert_enabled = request.POST.get("system_alert_enabled") == "on"
-            settings_obj.system_alert_webhook_url = request.POST.get("system_alert_webhook_url", "")
-            settings_obj.save()
-            messages.success(request, "System alert settings updated.")
-            return redirect("notifications:settings")
-
-    hours = list(range(24))
-    return render(request, "notifications/settings.html", {
-        "settings_obj": settings_obj,
-        "hours": hours,
-    })
-
-
-@login_required
-@user_passes_test(is_superadmin)
-def backup_list(request):
-    from .services import BackupService
+            return redirect("notifications:backup_list")
 
     backup_service = BackupService()
     backups, diagnostics = backup_service.list_backups_with_diagnostics()
     last_backup = backup_service.get_last_backup_info()
+    hours = list(range(24))
 
     return render(request, "notifications/backup_list.html", {
         "backups": backups,
         "last_backup": last_backup,
         "backup_diagnostics": diagnostics,
+        "settings_obj": settings_obj,
+        "hours": hours,
     })
 
 
@@ -111,7 +103,7 @@ def backup_validate(request):
         else:
             messages.error(request, f"Backup validation failed: {error}")
 
-    return redirect("notifications:settings")
+    return redirect("notifications:backup_list")
 
 
 @login_required
