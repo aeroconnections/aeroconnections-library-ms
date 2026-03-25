@@ -1,7 +1,7 @@
 from datetime import date, timedelta
 
 from django.contrib import messages
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
@@ -9,6 +9,10 @@ from apps.books.models import Book, BookCopy
 from apps.borrowers.models import Borrower
 
 from .models import ActivityLog, Loan, ReturnNote
+
+
+def is_superadmin(user):
+    return user.is_superuser
 
 
 def log_activity(action, description, user):
@@ -23,10 +27,10 @@ def log_activity(action, description, user):
 def loan_list(request):
     active_loans = Loan.objects.select_related("book_copy", "book_copy__book").filter(
         status__in=["active", "overdue"]
-    ).order_by("-checkout_date")
+    ).order_by("checkout_date")
     returned_loans = Loan.objects.select_related("book_copy", "book_copy__book").filter(
         status="returned"
-    ).order_by("-return_date")
+    ).order_by("checkout_date")
 
     stats = {
         "total": Loan.objects.count(),
@@ -205,3 +209,57 @@ def dashboard(request):
         "overdue_loans": overdue_list,
         "due_soon_loans": due_soon_loans,
     })
+
+
+@login_required
+@user_passes_test(is_superadmin)
+def loan_delete(request, pk):
+    loan = get_object_or_404(Loan, pk=pk)
+
+    if loan.status != Loan.Status.RETURNED:
+        messages.error(request, "Only returned loans can be deleted.")
+        return redirect("loans:loan_detail", pk=loan.pk)
+
+    if request.method == "POST":
+        confirm_text = request.POST.get("confirm_text", "").upper()
+        if confirm_text != "DELETE":
+            messages.error(request, 'Please type "DELETE" to confirm.')
+            return redirect("loans:loan_delete", pk=loan.pk)
+
+        loan_info = f"{loan.copy_id_snapshot} ({loan.book_title_snapshot}) - {loan.borrower_name}"
+        loan.delete()
+
+        log_activity(
+            ActivityLog.Action.RETURN,
+            f"Loan record deleted: {loan_info}",
+            request.user
+        )
+        messages.success(request, "Loan record deleted successfully.")
+        return redirect("loans:loan_list")
+
+    return render(request, "loans/loan_confirm_delete.html", {"loan": loan})
+
+
+@login_required
+@user_passes_test(is_superadmin)
+def return_note_delete(request, pk):
+    note = get_object_or_404(ReturnNote, pk=pk)
+
+    if request.method == "POST":
+        confirm_text = request.POST.get("confirm_text", "").upper()
+        if confirm_text != "DELETE":
+            messages.error(request, 'Please type "DELETE" to confirm.')
+            return redirect("loans:return_note_delete", pk=note.pk)
+
+        note_info = f"{note.book_copy.copy_id} ({note.book_copy.book.title}) - {note.borrower_name}"
+        note.delete()
+
+        log_activity(
+            ActivityLog.Action.RETURN,
+            f"Return note deleted: {note_info}",
+            request.user
+        )
+        messages.success(request, "Return note deleted successfully.")
+        return redirect("loans:return_notes")
+
+    return render(request, "loans/return_note_confirm_delete.html", {"note": note})

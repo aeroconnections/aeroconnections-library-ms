@@ -92,6 +92,15 @@ class Loan(models.Model):
         return "Active"
 
     @property
+    def book_id_snapshot(self):
+        try:
+            return self.book_copy.book.book_id
+        except (AttributeError, Exception):
+            if self.copy_id_snapshot and '-' in self.copy_id_snapshot:
+                return self.copy_id_snapshot.split('-')[0]
+            return self.copy_id_snapshot or 'N/A'
+
+    @property
     def status_color(self):
         if self.status == self.Status.RETURNED:
             return "success"

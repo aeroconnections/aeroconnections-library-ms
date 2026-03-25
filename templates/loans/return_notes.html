@@ -70,7 +70,12 @@
             
             <div class="flex items-center justify-between text-xs text-dark-grey/50 pt-2 border-t border-light-grey/50">
                 <span>{{ note.created_at|date:"M d, Y" }}</span>
-                <span>{{ note.created_by.username|default:"Staff" }}</span>
+                <div class="flex items-center gap-2">
+                    <span>{{ note.created_by.username|default:"Staff" }}</span>
+                    {% if user.is_superuser %}
+                    <a href="{% url 'loans:return_note_delete' note.pk %}" class="text-danger hover:text-red-700 font-medium ml-2">Delete</a>
+                    {% endif %}
+                </div>
             </div>
         </div>
     </div>

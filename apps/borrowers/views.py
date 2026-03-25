@@ -68,7 +68,7 @@ def borrower_create(request):
             request.user
         )
         messages.success(request, f"Borrower '{full_name}' added successfully.")
-        return redirect("borrowers:borrower_list")
+        return redirect("borrowers:borrower_list_all")
 
     return render(request, "borrowers/borrower_form.html", {"borrower": None})
 
@@ -124,7 +124,7 @@ def borrower_deactivate(request, pk):
             request.user
         )
         messages.success(request, f"Borrower '{borrower.full_name}' deactivated.")
-        return redirect("borrowers:borrower_list")
+        return redirect("borrowers:borrower_list_all")
 
     return render(request, "borrowers/borrower_confirm_delete.html", {"borrower": borrower})
 
@@ -143,7 +143,7 @@ def borrower_reactivate(request, pk):
             request.user
         )
         messages.success(request, f"Borrower '{borrower.full_name}' reactivated.")
-        return redirect("borrowers:borrower_list")
+        return redirect("borrowers:borrower_list_all")
 
     return render(request, "borrowers/borrower_confirm_reactivate.html", {"borrower": borrower})
 
@@ -233,6 +233,6 @@ def borrower_import_confirm(request):
             )
             messages.success(request, f"Successfully imported {imported_count} borrower(s).")
 
-        return redirect("borrowers:borrower_list")
+        return redirect("borrowers:borrower_list_all")
 
     return redirect("borrowers:borrower_import")

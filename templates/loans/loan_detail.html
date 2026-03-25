@@ -75,6 +75,11 @@
                 Return Book
             </a>
             {% endif %}
+            {% if loan.status == 'returned' and user.is_superuser %}
+            <a href="{% url 'loans:loan_delete' loan.pk %}" class="bg-danger hover:bg-red-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+                Delete Record
+            </a>
+            {% endif %}
             <a href="{% url 'loans:loan_list' %}" class="bg-light-grey hover:bg-gray-300 text-dark-grey px-4 py-2 rounded-lg font-medium transition-colors">
                 Back to List
             </a>
