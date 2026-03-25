@@ -47,6 +47,12 @@ class Loan(models.Model):
 
     class Meta:
         ordering = ["-checkout_date"]
+        indexes = [
+            models.Index(fields=["checkout_date"]),
+            models.Index(fields=["status"]),
+            models.Index(fields=["due_date"]),
+            models.Index(fields=["borrower_name"]),
+        ]
 
     def __str__(self):
         return f"{self.copy_id_snapshot} - {self.borrower_name}"

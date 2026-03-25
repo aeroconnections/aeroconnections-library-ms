@@ -145,6 +145,42 @@
             <p class="text-dark-grey">No returned copies yet</p>
         </div>
         {% endif %}
+        
+        {% if page_obj.has_other_pages %}
+        <nav class="flex justify-center mt-6" aria-label="Pagination">
+            <ul class="flex gap-2">
+                {% if page_obj.has_previous %}
+                <li>
+                    <a href="?page=1" class="px-4 py-2 border border-light-grey rounded-lg hover:bg-light-grey/50 transition-colors">
+                        First
+                    </a>
+                </li>
+                <li>
+                    <a href="?page={{ page_obj.previous_page_number }}" class="px-4 py-2 border border-light-grey rounded-lg hover:bg-light-grey/50 transition-colors">
+                        Previous
+                    </a>
+                </li>
+                {% endif %}
+                
+                <li class="px-4 py-2 border border-light-grey rounded-lg bg-light-grey/30">
+                    Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                </li>
+                
+                {% if page_obj.has_next %}
+                <li>
+                    <a href="?page={{ page_obj.next_page_number }}" class="px-4 py-2 border border-light-grey rounded-lg hover:bg-light-grey/50 transition-colors">
+                        Next
+                    </a>
+                </li>
+                <li>
+                    <a href="?page={{ page_obj.paginator.num_pages }}" class="px-4 py-2 border border-light-grey rounded-lg hover:bg-light-grey/50 transition-colors">
+                        Last
+                    </a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
     </div>
 </div>
 {% endblock %}

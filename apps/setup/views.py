@@ -1,5 +1,6 @@
 from django.contrib import messages
 from django.contrib.auth import get_user_model
+from django.contrib.auth.hashers import check_password, make_password
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse_lazy
@@ -42,7 +43,7 @@ class SetupGateView(View):
             config = SetupConfig.get_config()
             entered_pin = form.cleaned_data["pin"]
 
-            if config.setup_pin == entered_pin:
+            if check_password(entered_pin, config.setup_pin):
                 request.session["setup_access"] = True
                 return HttpResponseRedirect(reverse_lazy("setup:wizard"))
             else:
@@ -110,7 +111,7 @@ class SetupWizardView(View):
                 )
 
             config.setup_completed = True
-            config.setup_pin = setup_pin
+            config.setup_pin = make_password(setup_pin)
             config.domain = domain
             config.save()
 
@@ -144,8 +145,8 @@ class SetupSecurityView(View):
             current_pin = form.cleaned_data["current_pin"]
             new_pin = form.cleaned_data["new_pin"]
 
-            if config.setup_pin == current_pin:
-                config.setup_pin = new_pin
+            if check_password(current_pin, config.setup_pin):
+                config.setup_pin = make_password(new_pin)
                 config.save()
                 messages.success(request, "PIN changed successfully!")
             else:

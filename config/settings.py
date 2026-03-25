@@ -9,9 +9,13 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = os.getenv("SECRET_KEY", "django-insecure-dev-key-change-in-production")
 
-DEBUG = os.getenv("DEBUG", "True").lower() == "true"
+DEBUG = os.getenv("DEBUG", "False").lower() in ("true", "1", "yes")
 
-ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "*").split(",")
+_allowed_hosts = os.getenv("ALLOWED_HOSTS", "")
+if not _allowed_hosts:
+    ALLOWED_HOSTS = ["localhost", "127.0.0.1"] if DEBUG else []
+else:
+    ALLOWED_HOSTS = [h.strip() for h in _allowed_hosts.split(",") if h.strip()]
 
 
 def _get_csrf_trusted_origins():
@@ -40,6 +44,26 @@ def _get_csrf_trusted_origins():
 CSRF_TRUSTED_ORIGINS = _get_csrf_trusted_origins()
 
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+
+# Security settings (only apply in production)
+if not DEBUG:
+    SECURE_SSL_REDIRECT = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_HSTS_SECONDS = 31536000
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    X_FRAME_OPTIONS = "DENY"
+else:
+    SECURE_SSL_REDIRECT = False
+    SESSION_COOKIE_SECURE = False
+    CSRF_COOKIE_SECURE = False
+    SECURE_HSTS_SECONDS = 0
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = False
+    SECURE_HSTS_PRELOAD = False
+    SECURE_CONTENT_TYPE_NOSNIFF = False
+    X_FRAME_OPTIONS = "SAMEORIGIN"
 
 APP_VERSION = "1.3.3"
 GITHUB_REPO = "https://github.com/aeroconnections/aeroconnections-library-ms"

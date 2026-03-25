@@ -2,25 +2,19 @@ from datetime import date, timedelta
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test
+from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
 from apps.books.models import Book, BookCopy
 from apps.borrowers.models import Borrower
+from apps.utils.activity_logger import log_activity
 
 from .models import ActivityLog, Loan, ReturnNote
 
 
 def is_superadmin(user):
     return user.is_superuser
-
-
-def log_activity(action, description, user):
-    ActivityLog.objects.create(
-        action=action,
-        description=description,
-        user=user
-    )
 
 
 @login_required
@@ -32,24 +26,34 @@ def loan_list(request):
         status="returned"
     ).order_by("checkout_date")
 
+    today = timezone.now().date()
     stats = {
         "total": Loan.objects.count(),
         "active": Loan.objects.filter(status__in=["active", "overdue"]).count(),
         "due_soon": Loan.objects.filter(
             status="active",
-            checkout_date__lte=timezone.now().date() - timedelta(days=25)
+            checkout_date__lte=today - timedelta(days=25)
         ).exclude(
-            checkout_date__lte=timezone.now().date() - timedelta(days=30)
+            checkout_date__lte=today - timedelta(days=30)
         ).count(),
         "overdue": Loan.objects.filter(
-            checkout_date__lt=timezone.now().date() - timedelta(days=30)
+            checkout_date__lt=today - timedelta(days=30)
         ).exclude(status="returned").count(),
     }
 
+    paginator = Paginator(returned_loans, 25)
+    page_number = request.GET.get("page")
+    try:
+        returned_page = paginator.get_page(page_number)
+    except (PageNotAnInteger, EmptyPage):
+        returned_page = paginator.get_page(1)
+
     return render(request, "loans/loan_list.html", {
         "active_loans": active_loans,
-        "returned_loans": returned_loans,
-        "stats": stats
+        "returned_loans": returned_page,
+        "stats": stats,
+        "page_obj": returned_page,
+        "paginator": paginator,
     })
 
 

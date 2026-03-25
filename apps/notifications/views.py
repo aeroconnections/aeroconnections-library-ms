@@ -28,8 +28,23 @@ def backup_list(request):
 
         if action == "update_backup":
             settings_obj.backup_enabled = request.POST.get("backup_enabled") == "on"
-            settings_obj.backup_hour = int(request.POST.get("backup_hour", 2))
-            settings_obj.backup_retention_days = int(request.POST.get("backup_retention_days", 14))
+
+            try:
+                backup_hour = int(request.POST.get("backup_hour", 2))
+                if not 0 <= backup_hour <= 23:
+                    backup_hour = 2
+                settings_obj.backup_hour = backup_hour
+            except ValueError:
+                settings_obj.backup_hour = 2
+
+            try:
+                retention_days = int(request.POST.get("backup_retention_days", 14))
+                if not 1 <= retention_days <= 365:
+                    retention_days = 14
+                settings_obj.backup_retention_days = retention_days
+            except ValueError:
+                settings_obj.backup_retention_days = 14
+
             settings_obj.backup_mount_type = request.POST.get("backup_mount_type", "local")
             settings_obj.backup_mount_path = request.POST.get("backup_mount_path", "")
             settings_obj.backup_mount_options = request.POST.get("backup_mount_options", "")
@@ -120,6 +135,7 @@ def backup_download(request, filename):
     if not backup_path.exists():
         raise Http404("Backup not found")
 
-    response = FileResponse(open(backup_path, "rb"))
-    response["Content-Disposition"] = f'attachment; filename="{filename}"'
-    return response
+    with open(backup_path, "rb") as f:
+        response = FileResponse(f)
+        response["Content-Disposition"] = f'attachment; filename="{filename}"'
+        return response

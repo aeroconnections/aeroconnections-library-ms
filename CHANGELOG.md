@@ -4,6 +4,29 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.3.3] - 2026-03-25
+
+### Security
+- **XSS Vulnerabilities Fixed** - Fixed XSS vulnerabilities in templates with inline onclick handlers (add `|escapejs` filter)
+- **Pipe Injection Fixed** - Replaced pipe-delimited CSV import data with JSON serialization to prevent injection
+- **PIN Security Hardened** - PIN now hashed using Django's `make_password`/`check_password` instead of plain text storage
+- **Settings Defaults** - Fixed dangerous DEBUG and ALLOWED_HOSTS defaults; DEBUG now defaults to False
+
+### Fixed
+- **File Handle Leak** - Fixed file handle leak in backup download endpoint
+- **Input Validation** - Added validation for backup settings (hour, retention days)
+- **Error Handling** - Improved error handling in CSV imports with proper logging
+
+### Added
+- **Pagination** - Added pagination (25 items/page) to book, borrower, and loan list views
+- **Database Indexes** - Added indexes on Loan model for checkout_date, status, due_date, borrower_name
+- **Security Headers** - Added production security headers (HSTS, CSP, X-Frame-Options, etc.)
+- **Shared Activity Logger** - Created reusable activity logger utility
+
+### Changed
+- **Settings Page Rework** - Settings page now shows two sections: Backup and Django Admin
+- **cached_property** - Book model properties now use `@cached_property` to prevent N+1 queries
+
 ## [1.3.2] - 2026-03-24
 
 ### Added

@@ -1,21 +1,16 @@
 import csv
 import io
+import json
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
 from django.shortcuts import get_object_or_404, redirect, render
 
 from apps.loans.models import ActivityLog, Loan, ReturnNote
+from apps.utils.activity_logger import log_activity
 
 from .models import Borrower
-
-
-def log_activity(action, description, user):
-    ActivityLog.objects.create(
-        action=action,
-        description=description,
-        user=user
-    )
 
 
 @login_required
@@ -24,7 +19,7 @@ def borrower_list(request):
     search_query = request.GET.get("q")
     employment_filter = request.GET.get("employment_type")
 
-    borrowers = Borrower.objects.all()
+    borrowers = Borrower.objects.filter()
 
     if status_filter == "active":
         borrowers = borrowers.filter(is_active=True)
@@ -39,7 +34,19 @@ def borrower_list(request):
             email__icontains=search_query
         )
 
-    return render(request, "borrowers/borrower_list.html", {"borrowers": borrowers, "status_filter": status_filter or "active"})
+    paginator = Paginator(borrowers, 25)
+    page_number = request.GET.get("page")
+    try:
+        page_obj = paginator.get_page(page_number)
+    except (PageNotAnInteger, EmptyPage):
+        page_obj = paginator.get_page(1)
+
+    return render(request, "borrowers/borrower_list.html", {
+        "borrowers": page_obj,
+        "status_filter": status_filter or "active",
+        "page_obj": page_obj,
+        "paginator": paginator,
+    })
 
 
 @login_required
@@ -191,6 +198,7 @@ def borrower_import(request):
                 "phone": phone,
                 "employment_type": employment_type,
                 "row": row_num,
+                "json_data": json.dumps({"full_name": full_name, "email": email, "phone": phone, "employment_type": employment_type}),
             }
 
             is_duplicate = Borrower.objects.filter(email=email).exists()
@@ -207,13 +215,26 @@ def borrower_import(request):
 
 @login_required
 def borrower_import_confirm(request):
+    import logging
+    logger = logging.getLogger(__name__)
+
     if request.method == "POST":
         borrowers_data = request.POST.getlist("borrowers_data")
         imported_count = 0
+        errors = []
 
         for borrower_json in borrowers_data:
             try:
-                full_name, email, phone, employment_type = borrower_json.split("|")
+                data = json.loads(borrower_json)
+                full_name = data.get("full_name", "").strip()
+                email = data.get("email", "").strip()
+                phone = data.get("phone", "").strip()
+                employment_type = data.get("employment_type", "permanent").strip().lower()
+
+                if not full_name or not email:
+                    errors.append("Missing required fields for row")
+                    continue
+
                 borrower = Borrower(
                     full_name=full_name,
                     email=email,
@@ -222,8 +243,12 @@ def borrower_import_confirm(request):
                 )
                 borrower.save()
                 imported_count += 1
-            except Exception:
-                pass
+            except json.JSONDecodeError as e:
+                errors.append(f"Invalid data format: {e}")
+                logger.error(f"Import JSON decode error: {e}")
+            except Exception as e:
+                errors.append(f"Import failed: {e}")
+                logger.error(f"Import error: {e}")
 
         if imported_count > 0:
             log_activity(
@@ -232,6 +257,9 @@ def borrower_import_confirm(request):
                 request.user
             )
             messages.success(request, f"Successfully imported {imported_count} borrower(s).")
+
+        if errors:
+            messages.warning(request, f"Some rows had issues: {'; '.join(errors[:5])}")
 
         return redirect("borrowers:borrower_list_all")
 

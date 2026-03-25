@@ -1,8 +1,10 @@
 import csv
 import io
+import json
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 
@@ -13,7 +15,7 @@ from .models import Book, BookCopy
 
 @login_required
 def book_list(request):
-    books = Book.objects.all()
+    books = Book.objects.filter()
     search_query = request.GET.get("q")
 
     if search_query:
@@ -21,7 +23,18 @@ def book_list(request):
             author__icontains=search_query
         ) | books.filter(book_id__icontains=search_query)
 
-    return render(request, "books/book_list.html", {"books": books})
+    paginator = Paginator(books, 25)
+    page_number = request.GET.get("page")
+    try:
+        page_obj = paginator.get_page(page_number)
+    except (PageNotAnInteger, EmptyPage):
+        page_obj = paginator.get_page(1)
+
+    return render(request, "books/book_list.html", {
+        "books": page_obj,
+        "page_obj": page_obj,
+        "paginator": paginator,
+    })
 
 
 def book_search_api(request):
@@ -223,6 +236,7 @@ def book_import(request):
                 "isbn": isbn,
                 "copies": copies,
                 "row": row_num,
+                "json_data": json.dumps({"title": title, "author": author, "isbn": isbn, "copies": copies}),
             }
 
             is_duplicate = False
@@ -242,13 +256,26 @@ def book_import(request):
 
 @login_required
 def book_import_confirm(request):
+    import logging
+    logger = logging.getLogger(__name__)
+
     if request.method == "POST":
         books_data = request.POST.getlist("books_data")
         imported_count = 0
+        errors = []
 
         for book_json in books_data:
             try:
-                title, author, isbn, copies = book_json.split("|")
+                data = json.loads(book_json)
+                title = data.get("title", "").strip()
+                author = data.get("author", "").strip()
+                isbn = data.get("isbn", "").strip()
+                copies = data.get("copies", 1)
+
+                if not title or not author:
+                    errors.append("Missing required fields for row")
+                    continue
+
                 book = Book(
                     title=title,
                     author=author,
@@ -261,8 +288,12 @@ def book_import_confirm(request):
                     BookCopy.objects.create(book=book)
 
                 imported_count += 1
-            except Exception:
-                pass
+            except json.JSONDecodeError as e:
+                errors.append(f"Invalid data format: {e}")
+                logger.error(f"Import JSON decode error: {e}")
+            except Exception as e:
+                errors.append(f"Import failed: {e}")
+                logger.error(f"Import error: {e}")
 
         if imported_count > 0:
             ActivityLog.objects.create(
@@ -271,6 +302,9 @@ def book_import_confirm(request):
                 user=request.user,
             )
             messages.success(request, f"Successfully imported {imported_count} book(s).")
+
+        if errors:
+            messages.warning(request, f"Some rows had issues: {'; '.join(errors[:5])}")
 
         return redirect("books:book_list")
 

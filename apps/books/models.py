@@ -1,3 +1,5 @@
+from functools import cached_property
+
 from django.db import models
 
 
@@ -35,15 +37,15 @@ class Book(models.Model):
                 self.book_id = "01"
         super().save(*args, **kwargs)
 
-    @property
+    @cached_property
     def total_copies(self):
         return self.copies.count()
 
-    @property
+    @cached_property
     def available_copies(self):
         return self.copies.filter(status=BookCopy.Status.AVAILABLE).count()
 
-    @property
+    @cached_property
     def on_loan_copies(self):
         return self.copies.filter(status=BookCopy.Status.ON_LOAN).count()
 
@@ -113,7 +115,7 @@ class BookCopy(models.Model):
                 self.copy_id = f"{book_prefix}-1"
         super().save(*args, **kwargs)
 
-    @property
+    @cached_property
     def current_loan(self):
         return self.loans.filter(status__in=["active", "overdue"]).first()
 

@@ -63,7 +63,7 @@
             {% endif %}
             
             {% if note.image %}
-            <div class="mb-3 rounded-lg overflow-hidden cursor-pointer" onclick="openLightbox('{{ note.image.url }}')">
+            <div class="mb-3 rounded-lg overflow-hidden cursor-pointer" onclick="openLightbox('{{ note.image.url|escapejs }}')">
                 <img src="{{ note.image.url }}" alt="Return photo" class="w-full h-28 object-cover hover:opacity-90 transition-opacity">
             </div>
             {% endif %}
