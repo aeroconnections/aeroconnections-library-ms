@@ -312,6 +312,31 @@
             border-color: #DA291C;
             box-shadow: 0 0 0 3px rgba(218,41,28,0.1);
         }
+
+        .session-warning-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.55);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 16px;
+        }
+
+        .session-warning-backdrop.show {
+            display: flex;
+        }
+
+        .session-warning-card {
+            width: 100%;
+            max-width: 460px;
+            background: #fff;
+            border-radius: 14px;
+            border: 1px solid #e5e7eb;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+            padding: 20px;
+        }
     </style>
     {% block extra_head %}{% endblock %}
 </head>
@@ -482,6 +507,27 @@
             </svg>
         </button>
     </div>
+
+    <div id="sessionWarning" class="session-warning-backdrop" role="dialog" aria-modal="true" aria-labelledby="sessionWarningTitle">
+        <div class="session-warning-card">
+            <h3 id="sessionWarningTitle" class="text-lg font-semibold text-dark-grey mb-2">Session expiring soon</h3>
+            <p class="text-sm text-gray-600 mb-4">
+                You will be logged out in <span id="sessionWarningCountdown" class="font-semibold text-danger">60</span> seconds due to inactivity.
+            </p>
+            <div class="flex items-center gap-3">
+                <button id="staySignedInBtn" type="button" class="bg-primary hover:bg-primary-dark text-white px-4 py-2 rounded-lg font-medium transition-colors">
+                    Stay signed in
+                </button>
+                <button id="logoutNowBtn" type="button" class="bg-light-grey hover:bg-gray-300 text-dark-grey px-4 py-2 rounded-lg font-medium transition-colors">
+                    Log out now
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <form id="autoLogoutForm" action="{% url 'account_logout' %}" method="post" class="hidden">
+        {% csrf_token %}
+    </form>
     
     <script>
         const particlesContainer = document.getElementById('particles');
@@ -519,6 +565,93 @@
                 document.getElementById('fabIcon').innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>';
             }
         });
+
+        const autoLogoutEnabled = {{ AUTO_LOGOUT_ENABLED|yesno:"true,false" }};
+        const isAuthenticated = {{ user.is_authenticated|yesno:"true,false" }};
+
+        if (autoLogoutEnabled && isAuthenticated) {
+            const idleLimitSeconds = {{ AUTO_LOGOUT_IDLE_SECONDS|default:600 }};
+            const warningSeconds = {{ AUTO_LOGOUT_WARNING_SECONDS|default:60 }};
+            const warningStart = Math.max(1, idleLimitSeconds - warningSeconds);
+
+            const warningModal = document.getElementById('sessionWarning');
+            const countdownEl = document.getElementById('sessionWarningCountdown');
+            const stayBtn = document.getElementById('staySignedInBtn');
+            const logoutBtn = document.getElementById('logoutNowBtn');
+            const logoutForm = document.getElementById('autoLogoutForm');
+
+            let idleSeconds = 0;
+            let warningVisible = false;
+
+            function getCsrfToken() {
+                const tokenCookie = document.cookie
+                    .split('; ')
+                    .find((row) => row.startsWith('csrftoken='));
+                return tokenCookie ? tokenCookie.split('=')[1] : '';
+            }
+
+            function showWarning() {
+                if (warningVisible) return;
+                warningVisible = true;
+                warningModal.classList.add('show');
+            }
+
+            function hideWarning() {
+                warningVisible = false;
+                warningModal.classList.remove('show');
+            }
+
+            function resetIdleTimer() {
+                idleSeconds = 0;
+                if (warningVisible) hideWarning();
+            }
+
+            function triggerLogout() {
+                logoutForm.submit();
+            }
+
+            async function keepSessionAlive() {
+                try {
+                    const response = await fetch('{% url "notifications:session_ping" %}', {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRFToken': getCsrfToken(),
+                            'X-Requested-With': 'XMLHttpRequest',
+                        },
+                    });
+
+                    if (response.ok) {
+                        resetIdleTimer();
+                        return;
+                    }
+                } catch (error) {
+                    // Fall through to logout
+                }
+                triggerLogout();
+            }
+
+            const activityEvents = ['mousemove', 'keydown', 'click', 'scroll', 'touchstart'];
+            activityEvents.forEach((eventName) => {
+                window.addEventListener(eventName, resetIdleTimer, { passive: true });
+            });
+
+            stayBtn.addEventListener('click', keepSessionAlive);
+            logoutBtn.addEventListener('click', triggerLogout);
+
+            setInterval(() => {
+                idleSeconds += 1;
+                const remaining = Math.max(0, idleLimitSeconds - idleSeconds);
+
+                if (idleSeconds >= warningStart) {
+                    showWarning();
+                    countdownEl.textContent = remaining;
+                }
+
+                if (idleSeconds >= idleLimitSeconds) {
+                    triggerLogout();
+                }
+            }, 1000);
+        }
     </script>
     {% block extra_scripts %}{% endblock %}
 </body>

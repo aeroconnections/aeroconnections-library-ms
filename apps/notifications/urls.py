@@ -5,6 +5,7 @@ from . import views
 app_name = "notifications"
 
 urlpatterns = [
+    path("session/ping/", views.session_ping, name="session_ping"),
     path("settings/", views.settings, name="settings"),
     path("settings/backups/", views.backup_list, name="backup_list"),
     path("settings/backups/run/", views.backup_run, name="backup_run"),

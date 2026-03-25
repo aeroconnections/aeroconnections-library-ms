@@ -1,6 +1,6 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test
-from django.http import FileResponse, Http404
+from django.http import FileResponse, Http404, JsonResponse
 from django.shortcuts import redirect, render
 
 from .models import LibrarySettings
@@ -139,3 +139,10 @@ def backup_download(request, filename):
         response = FileResponse(f)
         response["Content-Disposition"] = f'attachment; filename="{filename}"'
         return response
+
+
+@login_required
+def session_ping(request):
+    if request.method != "POST":
+        return JsonResponse({"detail": "Method not allowed."}, status=405)
+    return JsonResponse({"ok": True})

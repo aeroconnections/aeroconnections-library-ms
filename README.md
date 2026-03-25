@@ -23,6 +23,7 @@ A free and open-source library management system built with Django.
 - **Setup Wizard** — Easy first-time configuration with PIN protection
 - **CSV Import** — Bulk import books and borrowers via CSV files
 - **Book Autocomplete** — Auto-fill author and ISBN when adding new books
+- **Auto Logout** — Automatic logout on inactivity with warning prompt and secure session timeout
 
 ## First-Time Setup
 
@@ -99,6 +100,28 @@ python manage.py runserver
 ```
 
 Then access `/setup/` to configure your library.
+
+## Auto Logout
+
+Auto logout is enabled by default and enforced server-side.
+
+- **Idle timeout**: 10 minutes
+- **Absolute timeout**: 60 minutes
+- **Warning**: 60 seconds before idle logout
+
+### Environment Variables
+
+```bash
+AUTO_LOGOUT_ENABLED=true
+AUTO_LOGOUT_IDLE_MINUTES=10
+AUTO_LOGOUT_ABSOLUTE_MINUTES=60
+AUTO_LOGOUT_WARNING_SECONDS=60
+```
+
+Notes:
+- Leaving the browser idle beyond the idle timeout logs out the current user session.
+- Even with activity, sessions are force-expired at the absolute timeout.
+- Auto logout affects authentication/session only; it does not modify books, loans, borrowers, or backup data.
 
 ## Auto-Backup
 

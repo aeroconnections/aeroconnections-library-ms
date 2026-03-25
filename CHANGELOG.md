@@ -4,6 +4,22 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.3.4] - 2026-03-25
+
+### Added
+- **Auto Logout** - Added automatic session expiration with enforced server-side timeouts.
+  - Idle timeout: 10 minutes
+  - Absolute timeout: 60 minutes
+  - Warning modal: 60 seconds before idle logout
+  - "Stay signed in" keep-alive action
+
+### Security
+- **Session Timeout Middleware** - Enforced idle/absolute session timeout in middleware for authenticated users.
+- **Secret Field Hardening** - Admin secret fields now use masked password inputs and preserve existing values when left blank.
+
+### Changed
+- **Application Version** - Bumped app version to `1.3.4`.
+
 ## [1.3.3] - 2026-03-25
 
 ### Security

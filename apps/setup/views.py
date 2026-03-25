@@ -21,6 +21,14 @@ def get_client_ip(request):
     return ip
 
 
+def pin_matches(entered_pin, stored_pin):
+    if not stored_pin:
+        return False
+    if check_password(entered_pin, stored_pin):
+        return True
+    return entered_pin == stored_pin
+
+
 class SetupGateView(View):
     """First step: Enter PIN to access setup"""
 
@@ -43,7 +51,10 @@ class SetupGateView(View):
             config = SetupConfig.get_config()
             entered_pin = form.cleaned_data["pin"]
 
-            if check_password(entered_pin, config.setup_pin):
+            if pin_matches(entered_pin, config.setup_pin):
+                if entered_pin == config.setup_pin:
+                    config.setup_pin = make_password(entered_pin)
+                    config.save(update_fields=["setup_pin", "updated_at"])
                 request.session["setup_access"] = True
                 return HttpResponseRedirect(reverse_lazy("setup:wizard"))
             else:
@@ -145,7 +156,7 @@ class SetupSecurityView(View):
             current_pin = form.cleaned_data["current_pin"]
             new_pin = form.cleaned_data["new_pin"]
 
-            if check_password(current_pin, config.setup_pin):
+            if pin_matches(current_pin, config.setup_pin):
                 config.setup_pin = make_password(new_pin)
                 config.save()
                 messages.success(request, "PIN changed successfully!")

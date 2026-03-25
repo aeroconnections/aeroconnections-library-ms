@@ -65,7 +65,7 @@ else:
     SECURE_CONTENT_TYPE_NOSNIFF = False
     X_FRAME_OPTIONS = "SAMEORIGIN"
 
-APP_VERSION = "1.3.3"
+APP_VERSION = "1.3.4"
 GITHUB_REPO = "https://github.com/aeroconnections/aeroconnections-library-ms"
 DOCKERHUB_REPO = "https://hub.docker.com/r/sachinaeroconnections/library-ms"
 
@@ -97,6 +97,7 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "config.middleware.AutoLogoutMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "allauth.account.middleware.AccountMiddleware",
@@ -172,6 +173,11 @@ LOGIN_URL = '/accounts/login/'
 LOGIN_REDIRECT_URL = '/'
 ACCOUNT_LOGOUT_REDIRECT_URL = '/accounts/login/'
 ACCOUNT_SESSION_REMEMBER = True
+
+AUTO_LOGOUT_ENABLED = os.getenv("AUTO_LOGOUT_ENABLED", "True").lower() in ("true", "1", "yes")
+AUTO_LOGOUT_IDLE_MINUTES = int(os.getenv("AUTO_LOGOUT_IDLE_MINUTES", "10"))
+AUTO_LOGOUT_ABSOLUTE_MINUTES = int(os.getenv("AUTO_LOGOUT_ABSOLUTE_MINUTES", "60"))
+AUTO_LOGOUT_WARNING_SECONDS = int(os.getenv("AUTO_LOGOUT_WARNING_SECONDS", "60"))
 
 CRISPY_ALLOWED_TEMPLATE_PACKS = "tailwind"
 CRISPY_TEMPLATE_PACK = "tailwind"
