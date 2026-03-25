@@ -11,6 +11,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **Pipe Injection Fixed** - Replaced pipe-delimited CSV import data with JSON serialization to prevent injection
 - **PIN Security Hardened** - PIN now hashed using Django's `make_password`/`check_password` instead of plain text storage
 - **Settings Defaults** - Fixed dangerous DEBUG and ALLOWED_HOSTS defaults; DEBUG now defaults to False
+- **Password Masking in Admin** - Password fields (SMB, Email, Webhook Secret) are now masked in Django admin for security
 
 ### Fixed
 - **File Handle Leak** - Fixed file handle leak in backup download endpoint
