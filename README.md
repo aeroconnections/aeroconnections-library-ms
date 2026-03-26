@@ -9,6 +9,8 @@ A free and open-source library management system built with Django.
 ## Features
 
 - **Book Copies** — Each physical book has a unique copy ID (e.g., #01-1, #01-2) for precise tracking
+- **Health Endpoint** — `/health/` endpoint for container orchestration and health checks
+- **Docker Healthcheck** — Native Docker HEALTHCHECK for container monitoring
 - **Loan Management** — Checkout, return, and configurable loan duration (14-60 days)
 - **Borrower Management** — Add borrowers with activation/deactivation support
 - **Return Notes** — Optional notes and damage photos for returns
@@ -402,7 +404,7 @@ library-ms/
 | 25-29 | Due Soon | Amber |
 | 30+ | Overdue | Red |
 
-## Current App Status (v1.3.5)
+## Current App Status (v1.3.8)
 
 - Stable release for production use with Docker and SQLite persistence.
 - Session security includes auto logout (10-minute idle timeout, 60-minute absolute timeout).

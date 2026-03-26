@@ -16,10 +16,7 @@ Please read our [Code of Conduct](CODE_OF_CONDUCT.md) before contributing. We ex
 
 ### Development Setup
 
-1. **Fork the repository**
-   ```bash
-   git fork https://github.com/YOUR_USERNAME/library-ms.git
-   ```
+1. **Fork the repository** on GitHub
 
 2. **Clone your fork**
    ```bash
@@ -35,16 +32,10 @@ Please read our [Code of Conduct](CODE_OF_CONDUCT.md) before contributing. We ex
 
 4. **Install dependencies**
    ```bash
-   pip install -r requirements-dev.txt
+   pip install -r requirements.txt
    ```
 
-5. **Set up environment variables**
-   ```bash
-   cp .env.example .env
-   # Edit .env with your local settings
-   ```
-
-6. **Run migrations**
+5. **Run migrations**
    ```bash
    python manage.py migrate
    ```
@@ -62,29 +53,16 @@ Please read our [Code of Conduct](CODE_OF_CONDUCT.md) before contributing. We ex
 ### Running Tests
 
 ```bash
-# Run all tests
-pytest
-
-# Run with coverage
-pytest --cov=apps --cov-report=html
-
-# Run specific test file
-pytest apps/books/tests/test_models.py
+python manage.py test
 ```
 
 ### Code Quality
 
-We use several tools to maintain code quality:
+We use ruff to maintain code quality:
 
 ```bash
-# Format code
-ruff format .
-
 # Lint code
 ruff check .
-
-# Type checking (if configured)
-mypy .
 ```
 
 ## Development Workflow
@@ -177,21 +155,19 @@ git push origin feature/add-book-categories
 ```
 library-ms/
 ├── apps/
-│   ├── books/          # Book management
-│   │   ├── models.py
-│   │   ├── views.py
-│   │   ├── forms.py
-│   │   ├── admin.py
-│   │   └── tests/
-│   ├── loans/          # Loan tracking
-│   │   └── ...
-│   └── notifications/  # Settings, backup, alerts & webhooks
-│       └── ...
+│   ├── books/          # Book & copy management
+│   ├── borrowers/      # Borrower management
+│   ├── loans/          # Loan tracking & returns
+│   ├── notifications/  # Settings, backup, branding
+│   └── setup/         # Setup wizard & configuration
 ├── config/             # Django settings
-├── static/
-├── templates/
-├── docs/               # Documentation
-└── tests/              # Integration tests
+├── templates/          # HTML templates
+├── static/            # CSS, JS
+├── media/              # Uploaded images
+├── docker-compose.yml
+├── Dockerfile
+├── requirements.txt
+└── README.md
 ```
 
 ## Reporting Issues
