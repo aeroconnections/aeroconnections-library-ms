@@ -12,7 +12,7 @@ from .services import NotificationService, SystemAlertService
 def check_overdue_loans():
     overdue_loans = Loan.objects.filter(
         checkout_date__lt=timezone.now().date() - timedelta(days=30)
-    ).exclude(status=Loan.Status.RETURNED).select_related("book")
+    ).exclude(status=Loan.Status.RETURNED)
 
     if overdue_loans.exists():
         return NotificationService.notify_overdue(list(overdue_loans))
@@ -24,10 +24,8 @@ def check_overdue_loans():
 def check_due_soon_loans():
     due_soon_loans = Loan.objects.filter(
         status=Loan.Status.ACTIVE,
-        checkout_date__lte=timezone.now().date() - timedelta(days=25)
-    ).exclude(
-        checkout_date__lt=timezone.now().date() - timedelta(days=30)
-    ).select_related("book")
+        checkout_date__lte=timezone.now().date() - timedelta(days=25),
+    ).exclude(checkout_date__lt=timezone.now().date() - timedelta(days=30))
 
     if due_soon_loans.exists():
         return NotificationService.notify_due_soon(list(due_soon_loans))
@@ -60,8 +58,7 @@ def daily_database_backup():
     valid, error = backup_service.validate_mount()
     if not valid:
         SystemAlertService.alert_mount_unavailable(
-            settings_obj.backup_mount_type,
-            settings_obj.backup_mount_path
+            settings_obj.backup_mount_type, settings_obj.backup_mount_path
         )
         return {"success": False, "error": f"Mount unavailable: {error}"}
 
@@ -72,7 +69,9 @@ def daily_database_backup():
             SystemAlertService.alert_backup_success(result)
             return {"success": True, "backup": result, "deleted": len(deleted)}
         else:
-            SystemAlertService.alert_backup_failure(result.get("error", "Unknown error"))
+            SystemAlertService.alert_backup_failure(
+                result.get("error", "Unknown error")
+            )
             return {"success": False, "error": result.get("error")}
     except Exception as e:
         SystemAlertService.alert_backup_failure(str(e))

@@ -4,6 +4,20 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.3.8] - 2026-03-26
+
+### Security
+- **SMB Credential Security** - SMB passwords loaded from file-based secret sources instead of command-line arguments.
+- **Path Traversal Hardening** - Backup download validates filename format with prefix/suffix checks.
+- **Multi-Stage Dockerfile** - Build dependencies removed from runtime image, reducing attack surface.
+
+### Added
+- **Health Endpoint** - New `/health/` endpoint for container orchestration and load balancer health checks.
+- **Dockerfile Healthcheck** - Native Docker HEALTHCHECK directive for container monitoring.
+
+### Fixed
+- **Celery Task Optimization** - `check_overdue_loans` and `check_due_soon_loans` tasks now use optimized queries.
+
 ## [1.3.6] - 2026-03-26
 
 ### Fixed
