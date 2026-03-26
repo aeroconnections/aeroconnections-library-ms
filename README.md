@@ -20,6 +20,7 @@ A free and open-source library management system built with Django.
 - **Configurable Settings** — Loan duration, due thresholds, max books per borrower
 - **Modern UI** — Responsive design with AeroConnections branding
 - **Multi-platform** — Supports AMD64 and ARM64 architectures
+- **Container Hardened** — Multi-stage build, non-root user, healthcheck, Trivy vulnerability scanning
 - **Setup Wizard** — Easy first-time configuration with PIN protection
 - **CSV Import** — Bulk import books and borrowers via CSV files
 - **Book Autocomplete** — Auto-fill author and ISBN when adding new books
@@ -70,6 +71,10 @@ docker run -d \
   --name library-ms \
   -p 8000:8000 \
   -v library-data:/app/data \
+  --health-cmd "wget --spider -q http://localhost:8000/health/" \
+  --health-interval 30s \
+  --health-timeout 10s \
+  --health-retries 3 \
   sachinaeroconnections/library-ms:latest
 ```
 
@@ -244,7 +249,7 @@ docker run -d \
 
 Use the **Validate SMB/NFS** button in Settings before running backup.
 
-#### 5. Container Volume Mount
+#### 5. Bind SMB Share to Container
 
 Bind the host-mounted SMB share into the container:
 
@@ -370,7 +375,7 @@ print('Setup configuration deleted. Access /setup/ to reconfigure.')
 | Backend | Django 5 |
 | Frontend | TailwindCSS |
 | Database | SQLite |
-| Container | Docker (Alpine-based) |
+| Container | Docker (Alpine-based, multi-stage, non-root) |
 | Task Queue | Celery + Redis |
 | Notifications | Webhooks, Email |
 
@@ -402,13 +407,14 @@ library-ms/
 | 25-29 | Due Soon | Amber |
 | 30+ | Overdue | Red |
 
-## Current App Status (v1.3.5)
+## Current App Status (v1.3.7)
 
 - Stable release for production use with Docker and SQLite persistence.
 - Session security includes auto logout (10-minute idle timeout, 60-minute absolute timeout).
 - Backup management supports local, NFS, and SMB host-mounted paths.
 - Pagination is standardized to 10 rows per page for core list views.
 - Superadmin-only destructive actions include borrower permanent deletion with safety checks.
+- Container security: multi-stage build (no build tools in runtime), non-root user, health endpoint, Trivy scanning on CI.
 
 ## Known Issues
 

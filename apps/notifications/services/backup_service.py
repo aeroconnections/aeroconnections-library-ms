@@ -3,6 +3,7 @@ import os
 import shutil
 import subprocess
 import tarfile
+import tempfile
 from datetime import datetime
 from datetime import timezone as dt_timezone
 from pathlib import Path
@@ -20,15 +21,18 @@ class BackupService:
 
     def _get_settings(self):
         from apps.notifications.models import LibrarySettings
+
         return LibrarySettings.get_active()
 
     def get_backup_dir(self):
         settings_obj = self._get_settings()
-        if settings_obj and settings_obj.backup_mount_type == 'local':
+        if settings_obj and settings_obj.backup_mount_type == "local":
             return self.backup_dir
-        elif settings_obj and settings_obj.backup_mount_type in ['nfs', 'smb']:
+        elif settings_obj and settings_obj.backup_mount_type in ["nfs", "smb"]:
             mount_path = settings_obj.backup_mount_path or ""
-            if settings_obj.backup_mount_type == 'smb' and self._is_remote_path(mount_path):
+            if settings_obj.backup_mount_type == "smb" and self._is_remote_path(
+                mount_path
+            ):
                 return Path("/mnt/backups")
             return Path(mount_path) if mount_path else self.backup_dir
         return self.backup_dir
@@ -42,7 +46,7 @@ class BackupService:
     def _extract_share_from_remote(remote_path):
         value = (remote_path or "").strip()
         if value.startswith("smb://"):
-            value = value[len("smb://"):]
+            value = value[len("smb://") :]
         value = value.strip("/")
         parts = value.split("/", 1)
         if len(parts) > 1:
@@ -57,7 +61,7 @@ class BackupService:
         if not settings_obj.backup_enabled:
             return True, None
 
-        if settings_obj.backup_mount_type == 'local':
+        if settings_obj.backup_mount_type == "local":
             try:
                 self.backup_dir.mkdir(parents=True, exist_ok=True)
                 test_file = self.backup_dir / ".write_test"
@@ -67,19 +71,21 @@ class BackupService:
             except Exception as e:
                 return False, f"Cannot write to local backup directory: {e}"
 
-        elif settings_obj.backup_mount_type in ['nfs', 'smb']:
+        elif settings_obj.backup_mount_type in ["nfs", "smb"]:
             mount_path = settings_obj.backup_mount_path
             if not mount_path:
                 return False, "Mount path not configured"
 
             remote_hint = ""
             local_mount_path = mount_path
-            if settings_obj.backup_mount_type == 'smb' and self._is_remote_path(mount_path):
+            if settings_obj.backup_mount_type == "smb" and self._is_remote_path(
+                mount_path
+            ):
                 remote_hint = mount_path
                 local_mount_path = "/mnt/backups"
 
             path = Path(local_mount_path)
-            if settings_obj.backup_mount_type == 'smb':
+            if settings_obj.backup_mount_type == "smb":
                 path.mkdir(parents=True, exist_ok=True)
                 if not os.path.ismount(path):
                     if not self._allow_in_container_mount():
@@ -89,9 +95,14 @@ class BackupService:
                             f"({path}). Set ALLOW_IN_CONTAINER_SMB_MOUNT=true only if privileged mounts are enabled."
                         )
 
-                    mounted, mount_error = self._mount_smb(settings_obj, str(path), remote_hint)
+                    mounted, mount_error = self._mount_smb(
+                        settings_obj, str(path), remote_hint
+                    )
                     if not mounted:
-                        return False, f"SMB mount failed for {settings_obj.smb_server or remote_hint or mount_path}: {mount_error}"
+                        return (
+                            False,
+                            f"SMB mount failed for {settings_obj.smb_server or remote_hint or mount_path}: {mount_error}",
+                        )
                 if not os.path.ismount(path):
                     return False, f"SMB path is not mounted: {path}"
             elif not path.exists():
@@ -149,7 +160,7 @@ class BackupService:
         raw = (smb_server or "").strip()
         hint_share = BackupService._extract_share_from_remote(remote_hint)
         if raw.startswith("smb://"):
-            raw = raw[len("smb://"):]
+            raw = raw[len("smb://") :]
         raw = raw.strip("/")
 
         if raw.startswith("//"):
@@ -171,8 +182,11 @@ class BackupService:
         return f"//{host}/{share}"
 
     def _mount_smb(self, settings_obj, mount_path, remote_hint=""):
+        cred_file = None
         try:
-            smb_source = self._normalize_smb_source(settings_obj.smb_server, mount_path, remote_hint)
+            smb_source = self._normalize_smb_source(
+                settings_obj.smb_server, mount_path, remote_hint
+            )
             secret_creds = self._load_smb_credentials_from_secret()
 
             smb_username = settings_obj.smb_username or secret_creds["username"]
@@ -180,25 +194,38 @@ class BackupService:
             smb_domain = settings_obj.smb_domain or secret_creds["domain"]
 
             if not smb_source:
-                return False, "Invalid SMB server/share. Use smb://host/share or //host/share"
+                return (
+                    False,
+                    "Invalid SMB server/share. Use smb://host/share or //host/share",
+                )
             if not smb_username:
                 return False, "SMB username not configured (UI or secrets file)"
 
             Path(mount_path).mkdir(parents=True, exist_ok=True)
 
-            mount_options = ["rw", "vers=3.0"]
-            if smb_username:
-                mount_options.append(f"username={smb_username}")
-            if smb_password:
-                mount_options.append(f"password={smb_password}")
+            mount_options = ["rw", "vers=3.0", f"username={smb_username}"]
             if smb_domain:
                 mount_options.append(f"domain={smb_domain}")
 
+            if smb_password:
+                fd, cred_file = tempfile.mkstemp(prefix="smb-credentials.")
+                os.chmod(cred_file, 0o600)
+                with os.fdopen(fd, "w") as f:
+                    f.write(f"username={smb_username}\npassword={smb_password}\n")
+                    if smb_domain:
+                        f.write(f"domain={smb_domain}\n")
+                mount_options.append(f"credentials={cred_file}")
+            else:
+                mount_options.append("password=")
+
             cmd = [
-                "mount", "-t", "cifs",
+                "mount",
+                "-t",
+                "cifs",
                 smb_source,
                 mount_path,
-                "-o", ",".join(mount_options)
+                "-o",
+                ",".join(mount_options),
             ]
 
             result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
@@ -213,6 +240,9 @@ class BackupService:
             return True, None
         except Exception as e:
             return False, str(e)
+        finally:
+            if cred_file and os.path.exists(cred_file):
+                os.unlink(cred_file)
 
     def create_backup(self):
         timestamp = timezone.now().strftime("%Y-%m-%d_%H%M%S")
@@ -279,7 +309,9 @@ class BackupService:
         deleted = []
         for backup_file in backup_dir.glob("library_backup_*.tar.gz"):
             try:
-                mtime = datetime.fromtimestamp(backup_file.stat().st_mtime, tz=dt_timezone.utc)
+                mtime = datetime.fromtimestamp(
+                    backup_file.stat().st_mtime, tz=dt_timezone.utc
+                )
                 if mtime < cutoff:
                     backup_file.unlink()
                     metadata_file = backup_file.with_suffix(".json")
@@ -304,7 +336,9 @@ class BackupService:
                 "skipped": [],
             }
 
-        discovered_files = sorted(backup_dir.glob("library_backup_*.tar.gz"), reverse=True)
+        discovered_files = sorted(
+            backup_dir.glob("library_backup_*.tar.gz"), reverse=True
+        )
 
         for backup_file in discovered_files:
             try:
@@ -315,23 +349,31 @@ class BackupService:
                         with open(metadata_file) as f:
                             metadata = json.load(f)
                     except Exception as e:
-                        skipped.append({
-                            "name": metadata_file.name,
-                            "error": f"metadata parse failed: {e}",
-                        })
+                        skipped.append(
+                            {
+                                "name": metadata_file.name,
+                                "error": f"metadata parse failed: {e}",
+                            }
+                        )
 
-                backups.append({
-                    "name": backup_file.name,
-                    "path": str(backup_file),
-                    "size_bytes": backup_file.stat().st_size,
-                    "created": datetime.fromtimestamp(backup_file.stat().st_mtime, tz=dt_timezone.utc),
-                    "metadata": metadata,
-                })
+                backups.append(
+                    {
+                        "name": backup_file.name,
+                        "path": str(backup_file),
+                        "size_bytes": backup_file.stat().st_size,
+                        "created": datetime.fromtimestamp(
+                            backup_file.stat().st_mtime, tz=dt_timezone.utc
+                        ),
+                        "metadata": metadata,
+                    }
+                )
             except Exception as e:
-                skipped.append({
-                    "name": backup_file.name,
-                    "error": str(e),
-                })
+                skipped.append(
+                    {
+                        "name": backup_file.name,
+                        "error": str(e),
+                    }
+                )
                 continue
 
         diagnostics = {
