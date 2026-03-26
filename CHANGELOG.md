@@ -4,23 +4,21 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
-## [1.3.7] - 2026-03-26 (Development)
+## [1.3.7] - 2026-03-26
 
 ### Security
-- **Celery Task Query Bug Fixed** - Removed invalid `select_related("book")` calls from `check_overdue_loans` and `check_due_soon_loans` tasks (Loan uses `book_copy` FK, not `book`).
-- **Backup Download Path Traversal Hardened** - Added canonical path verification using `Path.resolve()` to prevent path traversal attacks on backup downloads.
-- **SMB Password Removed from Subprocess Args** - SMB credentials are now written to a temporary file with `0o600` permissions and passed via `credentials=<file>` mount option instead of command-line arguments.
+- **Path Traversal Hardening** - Backup download endpoint now validates filename format with prefix/suffix checks.
+- **SMB Credential Security** - SMB passwords no longer passed as subprocess command-line arguments; credentials loaded from file-based secret sources.
+- **Multi-Stage Dockerfile** - Build dependencies (gcc, musl-dev, libpq-dev, postgresql-dev) removed from runtime image, reducing attack surface.
+- **Celery Task Query Bug Fixed** - Removed invalid `select_related("book")` calls from `check_overdue_loans` and `check_due_soon_loans` tasks.
 
-### Infrastructure
-- **Multi-Stage Dockerfile** - Build stage compiles dependencies; runtime stage ships a slim image without compilers, reducing CVE attack surface.
-- **Non-Root Container User** - Application now runs as `appuser` instead of root for improved container security.
-- **Container Healthcheck** - Added Docker `HEALTHCHECK` directive and `/health/` endpoint for container orchestration health monitoring.
-- **Runtime Migrations** - Database migrations moved from Docker build time to runtime via entrypoint script.
-- **Trivy CI Scanning** - Added automated Dockerfile vulnerability scanning (CRITICAL/HIGH) on push to main and tag releases.
-- **CI Test Suppression Removed** - Removed `|| echo "No tests configured"` masking from CI so test failures are properly reported.
+### Added
+- **Health Endpoint** - New `/health/` endpoint for container orchestration and load balancer health checks.
+- **Dockerfile Healthcheck** - Container now includes native HEALTHCHECK directive for Docker health monitoring.
+- **Trivy Scanning** - CI pipeline now includes Trivy vulnerability scanning on published images (CRITICAL/HIGH blocking).
 
-### Changed
-- **Application Version** - Bumped to `1.3.7`.
+### Fixed
+- **CI Action Versions** - Upgraded Docker and CodeQL GitHub Actions to latest stable versions.
 
 ## [1.3.6] - 2026-03-26
 
