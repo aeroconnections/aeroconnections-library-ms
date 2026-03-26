@@ -51,6 +51,9 @@ def loan_list(request):
     except (PageNotAnInteger, EmptyPage):
         returned_page = paginator.get_page(1)
 
+    pagination_query = request.GET.copy()
+    pagination_query.pop("page", None)
+
     return render(
         request,
         "loans/loan_list.html",
@@ -60,6 +63,7 @@ def loan_list(request):
             "stats": stats,
             "page_obj": returned_page,
             "paginator": paginator,
+            "pagination_query": pagination_query.urlencode(),
         },
     )
 
@@ -210,6 +214,9 @@ def activity_log(request):
     except (PageNotAnInteger, EmptyPage):
         logs_page = paginator.get_page(1)
 
+    pagination_query = request.GET.copy()
+    pagination_query.pop("page", None)
+
     return render(
         request,
         "loans/activity_log.html",
@@ -217,6 +224,7 @@ def activity_log(request):
             "logs": logs_page,
             "page_obj": logs_page,
             "paginator": paginator,
+            "pagination_query": pagination_query.urlencode(),
         },
     )
 

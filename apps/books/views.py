@@ -32,6 +32,9 @@ def book_list(request):
     except (PageNotAnInteger, EmptyPage):
         page_obj = paginator.get_page(1)
 
+    pagination_query = request.GET.copy()
+    pagination_query.pop("page", None)
+
     return render(
         request,
         "books/book_list.html",
@@ -39,6 +42,7 @@ def book_list(request):
             "books": page_obj,
             "page_obj": page_obj,
             "paginator": paginator,
+            "pagination_query": pagination_query.urlencode(),
         },
     )
 

@@ -1,16 +1,11 @@
 from django.urls import path
-from django.views.generic import RedirectView
 
 from . import views
 
 app_name = "borrowers"
 
 urlpatterns = [
-    path(
-        "",
-        RedirectView.as_view(url="/borrowers/?status=active", permanent=False),
-        name="borrower_list",
-    ),
+    path("", views.borrower_list, name="borrower_list"),
     path("list/", views.borrower_list, name="borrower_list_all"),
     path("create/", views.borrower_create, name="borrower_create"),
     path("import/", views.borrower_import, name="borrower_import"),
