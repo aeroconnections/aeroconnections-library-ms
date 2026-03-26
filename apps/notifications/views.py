@@ -45,9 +45,13 @@ def backup_list(request):
             except ValueError:
                 settings_obj.backup_retention_days = 14
 
-            settings_obj.backup_mount_type = request.POST.get("backup_mount_type", "local")
+            settings_obj.backup_mount_type = request.POST.get(
+                "backup_mount_type", "local"
+            )
             settings_obj.backup_mount_path = request.POST.get("backup_mount_path", "")
-            settings_obj.backup_mount_options = request.POST.get("backup_mount_options", "")
+            settings_obj.backup_mount_options = request.POST.get(
+                "backup_mount_options", ""
+            )
             settings_obj.smb_server = request.POST.get("smb_server", "")
             settings_obj.smb_username = request.POST.get("smb_username", "")
             smb_password = request.POST.get("smb_password", "")
@@ -63,13 +67,17 @@ def backup_list(request):
     last_backup = backup_service.get_last_backup_info()
     hours = list(range(24))
 
-    return render(request, "notifications/backup_list.html", {
-        "backups": backups,
-        "last_backup": last_backup,
-        "backup_diagnostics": diagnostics,
-        "settings_obj": settings_obj,
-        "hours": hours,
-    })
+    return render(
+        request,
+        "notifications/backup_list.html",
+        {
+            "backups": backups,
+            "last_backup": last_backup,
+            "backup_diagnostics": diagnostics,
+            "settings_obj": settings_obj,
+            "hours": hours,
+        },
+    )
 
 
 @login_required
@@ -94,8 +102,12 @@ def backup_run(request):
                 messages.success(request, f"Backup created: {result['path']}")
                 SystemAlertService.alert_backup_success(result)
             else:
-                messages.error(request, f"Backup failed: {result.get('error', 'Unknown error')}")
-                SystemAlertService.alert_backup_failure(result.get('error', 'Unknown error'))
+                messages.error(
+                    request, f"Backup failed: {result.get('error', 'Unknown error')}"
+                )
+                SystemAlertService.alert_backup_failure(
+                    result.get("error", "Unknown error")
+                )
         except Exception as e:
             messages.error(request, f"Backup failed: {str(e)}")
             SystemAlertService.alert_backup_failure(str(e))
@@ -114,7 +126,10 @@ def backup_validate(request):
         backup_service = BackupService()
         valid, error = backup_service.validate_mount()
         if valid:
-            messages.success(request, "Backup storage validation successful. SMB/NFS path is reachable and writable.")
+            messages.success(
+                request,
+                "Backup storage validation successful. SMB/NFS path is reachable and writable.",
+            )
         else:
             messages.error(request, f"Backup validation failed: {error}")
 
@@ -130,15 +145,19 @@ def backup_download(request, filename):
         raise Http404("Invalid filename")
 
     backup_service = BackupService()
-    backup_path = backup_service.get_backup_dir() / filename
+    backup_dir = backup_service.get_backup_dir()
+    backup_path = (backup_dir / filename).resolve()
+
+    if not str(backup_path).startswith(str(backup_dir.resolve())):
+        raise Http404("Invalid filename")
 
     if not backup_path.exists():
         raise Http404("Backup not found")
 
-    with open(backup_path, "rb") as f:
-        response = FileResponse(f)
-        response["Content-Disposition"] = f'attachment; filename="{filename}"'
-        return response
+    response = FileResponse(
+        open(backup_path, "rb"), as_attachment=True, filename=filename
+    )
+    return response
 
 
 @login_required
