@@ -1,4 +1,4 @@
-FROM python:alpine AS builder
+FROM python:3.12-alpine AS builder
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
@@ -11,17 +11,19 @@ RUN apk add --no-cache \
     gcc \
     musl-dev \
     libpq-dev \
-    postgresql-dev
+    postgresql-dev \
+    python3 \
+    py3-pip
 
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
-RUN python manage.py migrate
+RUN mkdir -p /app/data && python manage.py migrate
 
 RUN python manage.py collectstatic --noinput || true
 
-FROM python:alpine
+FROM python:3.12-alpine
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
@@ -36,9 +38,11 @@ WORKDIR /app
 RUN apk add --no-cache \
     cifs-utils \
     bash \
-    wget
+    wget \
+    python3 \
+    py3-pip
 
-COPY --from=builder /usr/local/lib/python*/site-packages /usr/local/lib/python*/site-packages
+COPY --from=builder /usr/local/lib/python3.12/site-packages /usr/local/lib/python3.12/site-packages
 COPY --from=builder /usr/local/bin /usr/local/bin
 COPY --from=builder /app /app
 
