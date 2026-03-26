@@ -4,6 +4,25 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.3.5] - 2026-03-26
+
+### Added
+- **Superadmin Borrower Deletion** - Superadmins can permanently delete borrower profiles with explicit `DELETE` confirmation.
+- **Borrower Delete Safety Guard** - Borrower deletion is blocked when active or overdue loans exist for that borrower.
+- **Activity Log Pagination** - Activity log now supports paginated browsing.
+
+### Changed
+- **Pagination Size** - Standardized list pagination to 10 items per page (Books, Borrowers, Returned Loans, Activity Log).
+- **Borrowers Default Navigation** - Borrowers navigation now defaults to active borrowers.
+- **Borrowers List Privacy** - Phone number is hidden in the borrowers list table; full details remain on borrower detail page.
+- **Application Version** - Bumped to `1.3.5`.
+
+### Documentation
+- **README Refresh** - Updated project status and feature coverage.
+- **Known Issues Section** - Added known limitations and operational caveats.
+- **Disclaimer Section** - Added operational and responsibility disclaimer.
+- **Third-Party Credits** - Added attributions for frameworks, libraries, and assets used by the project.
+
 ## [1.3.4] - 2026-03-25
 
 ### Added

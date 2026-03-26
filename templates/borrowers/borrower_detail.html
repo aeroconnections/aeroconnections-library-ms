@@ -70,9 +70,14 @@
             </div>
             
             <div class="flex gap-4">
-                <a href="{% url 'borrowers:borrower_list_all' %}" class="bg-light-grey hover:bg-gray-300 text-dark-grey px-4 py-2 rounded-lg font-medium transition-colors">
+                <a href="{% url 'borrowers:borrower_list' %}" class="bg-light-grey hover:bg-gray-300 text-dark-grey px-4 py-2 rounded-lg font-medium transition-colors">
                     Back to List
                 </a>
+                {% if user.is_superuser %}
+                <a href="{% url 'borrowers:borrower_delete' borrower.pk %}" class="bg-danger hover:bg-red-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+                    Delete Borrower
+                </a>
+                {% endif %}
             </div>
         </div>
     </div>

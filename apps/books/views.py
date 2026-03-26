@@ -19,22 +19,28 @@ def book_list(request):
     search_query = request.GET.get("q")
 
     if search_query:
-        books = books.filter(title__icontains=search_query) | books.filter(
-            author__icontains=search_query
-        ) | books.filter(book_id__icontains=search_query)
+        books = (
+            books.filter(title__icontains=search_query)
+            | books.filter(author__icontains=search_query)
+            | books.filter(book_id__icontains=search_query)
+        )
 
-    paginator = Paginator(books, 25)
+    paginator = Paginator(books, 10)
     page_number = request.GET.get("page")
     try:
         page_obj = paginator.get_page(page_number)
     except (PageNotAnInteger, EmptyPage):
         page_obj = paginator.get_page(1)
 
-    return render(request, "books/book_list.html", {
-        "books": page_obj,
-        "page_obj": page_obj,
-        "paginator": paginator,
-    })
+    return render(
+        request,
+        "books/book_list.html",
+        {
+            "books": page_obj,
+            "page_obj": page_obj,
+            "paginator": paginator,
+        },
+    )
 
 
 def book_search_api(request):
@@ -80,7 +86,9 @@ def book_create(request):
             description=f"Book #{book.book_id} ({book.title}) added with {copies} copy/copies",
             user=request.user,
         )
-        messages.success(request, f"Book #{book.book_id} added with {copies} copy/copies.")
+        messages.success(
+            request, f"Book #{book.book_id} added with {copies} copy/copies."
+        )
         return redirect("books:book_list")
 
     return render(request, "books/book_create.html")
@@ -90,14 +98,26 @@ def book_create(request):
 def book_detail(request, pk):
     book = get_object_or_404(Book, pk=pk)
     copies = book.copies.all()
-    loans = Loan.objects.filter(book_copy__in=copies).select_related("book_copy", "created_by").order_by("-checkout_date")
-    return_notes = ReturnNote.objects.filter(book_copy__in=copies).select_related("book_copy").order_by("-created_at")
-    return render(request, "books/book_detail.html", {
-        "book": book,
-        "copies": copies,
-        "loans": loans,
-        "return_notes": return_notes,
-    })
+    loans = (
+        Loan.objects.filter(book_copy__in=copies)
+        .select_related("book_copy", "created_by")
+        .order_by("-checkout_date")
+    )
+    return_notes = (
+        ReturnNote.objects.filter(book_copy__in=copies)
+        .select_related("book_copy")
+        .order_by("-created_at")
+    )
+    return render(
+        request,
+        "books/book_detail.html",
+        {
+            "book": book,
+            "copies": copies,
+            "loans": loans,
+            "return_notes": return_notes,
+        },
+    )
 
 
 @login_required
@@ -143,7 +163,9 @@ def book_delete(request, pk):
 
     on_loan = book.copies.filter(status=BookCopy.Status.ON_LOAN).exists()
     if on_loan:
-        messages.error(request, "Cannot delete a book that has copies currently on loan.")
+        messages.error(
+            request, "Cannot delete a book that has copies currently on loan."
+        )
         return redirect("books:book_list")
 
     if request.method == "POST":
@@ -210,7 +232,9 @@ def book_import(request):
 
         required_fields = ["title", "author"]
         if not all(field in reader.fieldnames for field in required_fields):
-            messages.error(request, f"CSV must have columns: {', '.join(required_fields)}")
+            messages.error(
+                request, f"CSV must have columns: {', '.join(required_fields)}"
+            )
             return redirect("books:book_import")
 
         preview_data = {"new": [], "duplicates": [], "errors": []}
@@ -222,7 +246,9 @@ def book_import(request):
             copies_str = row.get("copies", "1").strip()
 
             if not title or not author:
-                preview_data["errors"].append({"row": row_num, "error": "Title and author are required"})
+                preview_data["errors"].append(
+                    {"row": row_num, "error": "Title and author are required"}
+                )
                 continue
 
             try:
@@ -236,7 +262,9 @@ def book_import(request):
                 "isbn": isbn,
                 "copies": copies,
                 "row": row_num,
-                "json_data": json.dumps({"title": title, "author": author, "isbn": isbn, "copies": copies}),
+                "json_data": json.dumps(
+                    {"title": title, "author": author, "isbn": isbn, "copies": copies}
+                ),
             }
 
             is_duplicate = False
@@ -257,6 +285,7 @@ def book_import(request):
 @login_required
 def book_import_confirm(request):
     import logging
+
     logger = logging.getLogger(__name__)
 
     if request.method == "POST":
@@ -301,7 +330,9 @@ def book_import_confirm(request):
                 description=f"Imported {imported_count} book(s) via CSV",
                 user=request.user,
             )
-            messages.success(request, f"Successfully imported {imported_count} book(s).")
+            messages.success(
+                request, f"Successfully imported {imported_count} book(s)."
+            )
 
         if errors:
             messages.warning(request, f"Some rows had issues: {'; '.join(errors[:5])}")

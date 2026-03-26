@@ -65,7 +65,7 @@ else:
     SECURE_CONTENT_TYPE_NOSNIFF = False
     X_FRAME_OPTIONS = "SAMEORIGIN"
 
-APP_VERSION = "1.3.4"
+APP_VERSION = "1.3.5"
 GITHUB_REPO = "https://github.com/aeroconnections/aeroconnections-library-ms"
 DOCKERHUB_REPO = "https://hub.docker.com/r/sachinaeroconnections/library-ms"
 
@@ -134,7 +134,9 @@ DATABASES = {
 }
 
 AUTH_PASSWORD_VALIDATORS = [
-    {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
+    {
+        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"
+    },
     {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
     {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
     {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
@@ -165,16 +167,20 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 SITE_ID = 1
 
 AUTHENTICATION_BACKENDS = [
-    'django.contrib.auth.backends.ModelBackend',
-    'allauth.account.auth_backends.AuthenticationBackend',
+    "django.contrib.auth.backends.ModelBackend",
+    "allauth.account.auth_backends.AuthenticationBackend",
 ]
 
-LOGIN_URL = '/accounts/login/'
-LOGIN_REDIRECT_URL = '/'
-ACCOUNT_LOGOUT_REDIRECT_URL = '/accounts/login/'
+LOGIN_URL = "/accounts/login/"
+LOGIN_REDIRECT_URL = "/"
+ACCOUNT_LOGOUT_REDIRECT_URL = "/accounts/login/"
 ACCOUNT_SESSION_REMEMBER = True
 
-AUTO_LOGOUT_ENABLED = os.getenv("AUTO_LOGOUT_ENABLED", "True").lower() in ("true", "1", "yes")
+AUTO_LOGOUT_ENABLED = os.getenv("AUTO_LOGOUT_ENABLED", "True").lower() in (
+    "true",
+    "1",
+    "yes",
+)
 AUTO_LOGOUT_IDLE_MINUTES = int(os.getenv("AUTO_LOGOUT_IDLE_MINUTES", "10"))
 AUTO_LOGOUT_ABSOLUTE_MINUTES = int(os.getenv("AUTO_LOGOUT_ABSOLUTE_MINUTES", "60"))
 AUTO_LOGOUT_WARNING_SECONDS = int(os.getenv("AUTO_LOGOUT_WARNING_SECONDS", "60"))
@@ -199,7 +205,9 @@ CELERY_TASK_SERIALIZER = "json"
 CELERY_RESULT_SERIALIZER = "json"
 CELERY_TIMEZONE = TIME_ZONE
 
-EMAIL_BACKEND = os.getenv("EMAIL_BACKEND", "django.core.mail.backends.console.EmailBackend")
+EMAIL_BACKEND = os.getenv(
+    "EMAIL_BACKEND", "django.core.mail.backends.console.EmailBackend"
+)
 EMAIL_HOST = os.getenv("EMAIL_HOST", "smtp.gmail.com")
 EMAIL_PORT = int(os.getenv("EMAIL_PORT", "587"))
 EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS", "True").lower() == "true"

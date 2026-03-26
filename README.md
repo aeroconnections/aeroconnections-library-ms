@@ -24,6 +24,8 @@ A free and open-source library management system built with Django.
 - **CSV Import** — Bulk import books and borrowers via CSV files
 - **Book Autocomplete** — Auto-fill author and ISBN when adding new books
 - **Auto Logout** — Automatic logout on inactivity with warning prompt and secure session timeout
+- **Pagination** — Consistent 10-items-per-page pagination on major list views
+- **Superadmin Controls** — Dedicated destructive actions (with confirmations) for privileged users
 
 ## First-Time Setup
 
@@ -399,3 +401,46 @@ library-ms/
 | 0-24 | Active | Gray |
 | 25-29 | Due Soon | Amber |
 | 30+ | Overdue | Red |
+
+## Current App Status (v1.3.5)
+
+- Stable release for production use with Docker and SQLite persistence.
+- Session security includes auto logout (10-minute idle timeout, 60-minute absolute timeout).
+- Backup management supports local, NFS, and SMB host-mounted paths.
+- Pagination is standardized to 10 rows per page for core list views.
+- Superadmin-only destructive actions include borrower permanent deletion with safety checks.
+
+## Known Issues
+
+- Some administrative and configuration flows are intentionally restricted to superadmins and may appear unavailable to standard users.
+- Borrower historical records in loans/return notes are snapshot-based by borrower name, not relational foreign keys.
+- Celery worker/beat services are optional and require separate runtime setup if scheduled tasks are needed continuously.
+- In constrained container environments, SMB mounts inside the container may fail unless host-mounted SMB paths are used.
+
+## Disclaimer
+
+This software is provided "as is", without warranty of any kind, express or implied, including but not limited to fitness for a particular purpose and noninfringement.
+
+The operators of this system are responsible for:
+- secure secret management and environment configuration,
+- backup and recovery procedures,
+- access control and compliance with their local policies and legal requirements.
+
+## Third-Party Credits
+
+This project uses and appreciates the following open-source software and assets:
+
+- [Django](https://www.djangoproject.com/) - web framework
+- [Django REST Framework](https://www.django-rest-framework.org/) - API toolkit
+- [django-allauth](https://github.com/pennersr/django-allauth) - authentication/account management
+- [django-filter](https://github.com/carltongibson/django-filter) - filtering support
+- [django-crispy-forms](https://github.com/django-crispy-forms/django-crispy-forms) and [crispy-tailwind](https://github.com/django-crispy-forms/crispy-tailwind) - form rendering
+- [Tailwind CSS](https://tailwindcss.com/) (via CDN in current templates) - UI styling
+- [Gunicorn](https://gunicorn.org/) - WSGI server
+- [Celery](https://docs.celeryq.dev/) and [Redis](https://redis.io/) - background task processing
+- [WhiteNoise](https://whitenoise.readthedocs.io/) - static file serving
+- [Pillow](https://python-pillow.org/) - image handling
+- [Requests](https://requests.readthedocs.io/) - HTTP client utilities
+- [PostgreSQL](https://www.postgresql.org/) client libraries (`psycopg2-binary`) for supported external DB deployments
+
+Inline SVG icons in templates are based on common open-source icon patterns (Heroicons-style paths) embedded directly in project templates.

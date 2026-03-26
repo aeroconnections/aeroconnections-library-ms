@@ -3,7 +3,7 @@ import io
 import json
 
 from django.contrib import messages
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
 from django.shortcuts import get_object_or_404, redirect, render
 
@@ -13,9 +13,13 @@ from apps.utils.activity_logger import log_activity
 from .models import Borrower
 
 
+def is_superadmin(user):
+    return user.is_superuser
+
+
 @login_required
 def borrower_list(request):
-    status_filter = request.GET.get("status")
+    status_filter = request.GET.get("status", "active")
     search_query = request.GET.get("q")
     employment_filter = request.GET.get("employment_type")
 
@@ -30,23 +34,69 @@ def borrower_list(request):
         borrowers = borrowers.filter(employment_type=employment_filter)
 
     if search_query:
-        borrowers = borrowers.filter(full_name__icontains=search_query) | borrowers.filter(
-            email__icontains=search_query
-        )
+        borrowers = borrowers.filter(
+            full_name__icontains=search_query
+        ) | borrowers.filter(email__icontains=search_query)
 
-    paginator = Paginator(borrowers, 25)
+    paginator = Paginator(borrowers, 10)
     page_number = request.GET.get("page")
     try:
         page_obj = paginator.get_page(page_number)
     except (PageNotAnInteger, EmptyPage):
         page_obj = paginator.get_page(1)
 
-    return render(request, "borrowers/borrower_list.html", {
-        "borrowers": page_obj,
-        "status_filter": status_filter or "active",
-        "page_obj": page_obj,
-        "paginator": paginator,
-    })
+    return render(
+        request,
+        "borrowers/borrower_list.html",
+        {
+            "borrowers": page_obj,
+            "status_filter": status_filter or "active",
+            "page_obj": page_obj,
+            "paginator": paginator,
+        },
+    )
+
+
+@login_required
+@user_passes_test(is_superadmin)
+def borrower_delete(request, pk):
+    borrower = get_object_or_404(Borrower, pk=pk)
+
+    has_open_loans = Loan.objects.filter(
+        borrower_name=borrower.full_name,
+        status__in=["active", "overdue"],
+    ).exists()
+
+    if has_open_loans:
+        messages.error(
+            request,
+            "Cannot delete this borrower because they still have active or overdue loans.",
+        )
+        return redirect("borrowers:borrower_detail", pk=borrower.pk)
+
+    if request.method == "POST":
+        confirm_text = request.POST.get("confirm_text", "").upper()
+        if confirm_text != "DELETE":
+            messages.error(request, 'Please type "DELETE" to confirm.')
+            return redirect("borrowers:borrower_delete", pk=borrower.pk)
+
+        borrower_name = borrower.full_name
+        borrower_email = borrower.email
+        borrower.delete()
+
+        log_activity(
+            ActivityLog.Action.BORROWER_DEACTIVATED,
+            f"Borrower '{borrower_name}' ({borrower_email}) permanently deleted",
+            request.user,
+        )
+        messages.success(request, f"Borrower '{borrower_name}' deleted successfully.")
+        return redirect("borrowers:borrower_list")
+
+    return render(
+        request,
+        "borrowers/borrower_confirm_permanent_delete.html",
+        {"borrower": borrower},
+    )
 
 
 @login_required
@@ -55,7 +105,9 @@ def borrower_create(request):
         full_name = request.POST.get("full_name")
         email = request.POST.get("email")
         phone = request.POST.get("phone")
-        employment_type = request.POST.get("employment_type", Borrower.EmploymentType.PERMANENT)
+        employment_type = request.POST.get(
+            "employment_type", Borrower.EmploymentType.PERMANENT
+        )
         guardian_name = request.POST.get("guardian_name", "")
         guardian_contact = request.POST.get("guardian_contact", "")
 
@@ -72,10 +124,10 @@ def borrower_create(request):
         log_activity(
             ActivityLog.Action.BORROWER_CREATED,
             f"Borrower '{full_name}' added ({borrower.get_employment_type_display()})",
-            request.user
+            request.user,
         )
         messages.success(request, f"Borrower '{full_name}' added successfully.")
-        return redirect("borrowers:borrower_list_all")
+        return redirect("borrowers:borrower_list")
 
     return render(request, "borrowers/borrower_form.html", {"borrower": None})
 
@@ -83,13 +135,25 @@ def borrower_create(request):
 @login_required
 def borrower_detail(request, pk):
     borrower = get_object_or_404(Borrower, pk=pk)
-    loans = Loan.objects.filter(borrower_name=borrower.full_name).select_related("book_copy", "created_by").order_by("-checkout_date")
-    return_notes = ReturnNote.objects.filter(borrower_name=borrower.full_name).select_related("book_copy", "created_by").order_by("-created_at")
-    return render(request, "borrowers/borrower_detail.html", {
-        "borrower": borrower,
-        "loans": loans,
-        "return_notes": return_notes,
-    })
+    loans = (
+        Loan.objects.filter(borrower_name=borrower.full_name)
+        .select_related("book_copy", "created_by")
+        .order_by("-checkout_date")
+    )
+    return_notes = (
+        ReturnNote.objects.filter(borrower_name=borrower.full_name)
+        .select_related("book_copy", "created_by")
+        .order_by("-created_at")
+    )
+    return render(
+        request,
+        "borrowers/borrower_detail.html",
+        {
+            "borrower": borrower,
+            "loans": loans,
+            "return_notes": return_notes,
+        },
+    )
 
 
 @login_required
@@ -100,7 +164,9 @@ def borrower_edit(request, pk):
         borrower.full_name = request.POST.get("full_name")
         borrower.email = request.POST.get("email")
         borrower.phone = request.POST.get("phone")
-        borrower.employment_type = request.POST.get("employment_type", Borrower.EmploymentType.PERMANENT)
+        borrower.employment_type = request.POST.get(
+            "employment_type", Borrower.EmploymentType.PERMANENT
+        )
         borrower.guardian_name = request.POST.get("guardian_name", "")
         borrower.guardian_contact = request.POST.get("guardian_contact", "")
         borrower.save()
@@ -108,10 +174,12 @@ def borrower_edit(request, pk):
         log_activity(
             ActivityLog.Action.BORROWER_UPDATED,
             f"Borrower '{borrower.full_name}' updated",
-            request.user
+            request.user,
         )
 
-        messages.success(request, f"Borrower '{borrower.full_name}' updated successfully.")
+        messages.success(
+            request, f"Borrower '{borrower.full_name}' updated successfully."
+        )
         return redirect("borrowers:borrower_detail", pk=borrower.pk)
 
     return render(request, "borrowers/borrower_form.html", {"borrower": borrower})
@@ -128,12 +196,14 @@ def borrower_deactivate(request, pk):
         log_activity(
             ActivityLog.Action.BORROWER_DEACTIVATED,
             f"Borrower '{borrower.full_name}' deactivated",
-            request.user
+            request.user,
         )
         messages.success(request, f"Borrower '{borrower.full_name}' deactivated.")
-        return redirect("borrowers:borrower_list_all")
+        return redirect("borrowers:borrower_list")
 
-    return render(request, "borrowers/borrower_confirm_delete.html", {"borrower": borrower})
+    return render(
+        request, "borrowers/borrower_confirm_delete.html", {"borrower": borrower}
+    )
 
 
 @login_required
@@ -147,12 +217,14 @@ def borrower_reactivate(request, pk):
         log_activity(
             ActivityLog.Action.BORROWER_CREATED,
             f"Borrower '{borrower.full_name}' reactivated",
-            request.user
+            request.user,
         )
         messages.success(request, f"Borrower '{borrower.full_name}' reactivated.")
-        return redirect("borrowers:borrower_list_all")
+        return redirect("borrowers:borrower_list")
 
-    return render(request, "borrowers/borrower_confirm_reactivate.html", {"borrower": borrower})
+    return render(
+        request, "borrowers/borrower_confirm_reactivate.html", {"borrower": borrower}
+    )
 
 
 @login_required
@@ -173,7 +245,9 @@ def borrower_import(request):
 
         required_fields = ["full_name", "email"]
         if not all(field in reader.fieldnames for field in required_fields):
-            messages.error(request, f"CSV must have columns: {', '.join(required_fields)}")
+            messages.error(
+                request, f"CSV must have columns: {', '.join(required_fields)}"
+            )
             return redirect("borrowers:borrower_import")
 
         preview_data = {"new": [], "duplicates": [], "errors": []}
@@ -185,7 +259,9 @@ def borrower_import(request):
             employment_type = row.get("employment_type", "permanent").strip().lower()
 
             if not full_name or not email:
-                preview_data["errors"].append({"row": row_num, "error": "Full name and email are required"})
+                preview_data["errors"].append(
+                    {"row": row_num, "error": "Full name and email are required"}
+                )
                 continue
 
             valid_employment_types = ["permanent", "intern", "temporary"]
@@ -198,7 +274,14 @@ def borrower_import(request):
                 "phone": phone,
                 "employment_type": employment_type,
                 "row": row_num,
-                "json_data": json.dumps({"full_name": full_name, "email": email, "phone": phone, "employment_type": employment_type}),
+                "json_data": json.dumps(
+                    {
+                        "full_name": full_name,
+                        "email": email,
+                        "phone": phone,
+                        "employment_type": employment_type,
+                    }
+                ),
             }
 
             is_duplicate = Borrower.objects.filter(email=email).exists()
@@ -208,7 +291,9 @@ def borrower_import(request):
             else:
                 preview_data["new"].append(borrower_data)
 
-        return render(request, "borrowers/borrower_import.html", {"preview": preview_data})
+        return render(
+            request, "borrowers/borrower_import.html", {"preview": preview_data}
+        )
 
     return render(request, "borrowers/borrower_import.html")
 
@@ -216,6 +301,7 @@ def borrower_import(request):
 @login_required
 def borrower_import_confirm(request):
     import logging
+
     logger = logging.getLogger(__name__)
 
     if request.method == "POST":
@@ -229,7 +315,9 @@ def borrower_import_confirm(request):
                 full_name = data.get("full_name", "").strip()
                 email = data.get("email", "").strip()
                 phone = data.get("phone", "").strip()
-                employment_type = data.get("employment_type", "permanent").strip().lower()
+                employment_type = (
+                    data.get("employment_type", "permanent").strip().lower()
+                )
 
                 if not full_name or not email:
                     errors.append("Missing required fields for row")
@@ -254,13 +342,15 @@ def borrower_import_confirm(request):
             log_activity(
                 ActivityLog.Action.BORROWER_CREATED,
                 f"Imported {imported_count} borrower(s) via CSV",
-                request.user
+                request.user,
             )
-            messages.success(request, f"Successfully imported {imported_count} borrower(s).")
+            messages.success(
+                request, f"Successfully imported {imported_count} borrower(s)."
+            )
 
         if errors:
             messages.warning(request, f"Some rows had issues: {'; '.join(errors[:5])}")
 
-        return redirect("borrowers:borrower_list_all")
+        return redirect("borrowers:borrower_list")
 
     return redirect("borrowers:borrower_import")
