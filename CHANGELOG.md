@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.3.6] - 2026-03-26
+
+### Fixed
+- **Borrowers Redirect Loop** - Replaced `RedirectView` on `/borrowers/` with direct `borrower_list` view to prevent infinite redirect loop.
+- **Pagination Query Preservation** - Added `pagination_query` context variable to all paginated views so filter/search params survive page navigation.
+
+### Changed
+- **Shared Pagination Template** - Extracted pagination into reusable `templates/includes/pagination.html` shared across loans, borrowers, books, and activity log.
+- **Pagination Standardization** - Consistent pagination appearance and behavior across all list views.
+
 ## [1.3.5] - 2026-03-26
 
 ### Added

@@ -65,7 +65,7 @@ else:
     SECURE_CONTENT_TYPE_NOSNIFF = False
     X_FRAME_OPTIONS = "SAMEORIGIN"
 
-APP_VERSION = "1.3.5"
+APP_VERSION = "1.3.6"
 GITHUB_REPO = "https://github.com/aeroconnections/aeroconnections-library-ms"
 DOCKERHUB_REPO = "https://hub.docker.com/r/sachinaeroconnections/library-ms"
 
